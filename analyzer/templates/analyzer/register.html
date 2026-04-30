@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass p-5">
+
+            <div class="text-center mb-4">
+                <div class="display-4 brand-gradient mb-2">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <h2 class="fw-bold brand-gradient">Create Account</h2>
+                <p class="text-muted-custom">Register to use the Insurance AI Analyzer.</p>
+            </div>
+
+            <form method="post" class="vstack gap-3">
+                {% csrf_token %}
+
+                <div>
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Choose username" required>
+                </div>
+
+                <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password1" class="form-control" placeholder="Create password" required>
+                </div>
+
+                <div>
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" name="password2" class="form-control" placeholder="Confirm password" required>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-glow py-3 mt-2">
+                    <i class="bi bi-person-check-fill"></i> Register
+                </button>
+            </form>
+
+            <p class="text-center mt-4 mb-0 text-muted-custom">
+                Already have an account?
+                <a href="{% url 'login' %}" class="text-info fw-bold text-decoration-none">
+                    Login
+                </a>
+            </p>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

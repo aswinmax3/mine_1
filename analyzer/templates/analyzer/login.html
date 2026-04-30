@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass p-5">
+
+            <div class="text-center mb-4">
+                <div class="display-4 brand-gradient mb-2">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h2 class="fw-bold brand-gradient">Welcome Back</h2>
+                <p class="text-muted-custom">Login to analyze insurance documents.</p>
+            </div>
+
+            <form method="post" class="vstack gap-3">
+                {% csrf_token %}
+
+                <div>
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                </div>
+
+                <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Invalid username or password.
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-glow py-3 mt-2">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </button>
+            </form>
+
+            <p class="text-center mt-4 mb-0 text-muted-custom">
+                New user?
+                <a href="{% url 'register' %}" class="text-info fw-bold text-decoration-none">
+                    Create account
+                </a>
+            </p>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

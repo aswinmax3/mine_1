@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="glass p-4 p-md-5">
+
+    <div class="mb-4">
+        <h2 class="fw-bold brand-gradient">{{ document.title }}</h2>
+        <p class="text-muted-custom">AI analysis result</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-box">
+                <h6>Document Type</h6>
+                <h4>{{ document.document_type }}</h4>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box">
+                <h6>Risk Level</h6>
+                <h4>{{ document.risk_level }}</h4>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box">
+                <h6>Policy Number</h6>
+                <h4>{{ document.policy_number }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card-box">
+                <h5>Premium Amount</h5>
+                <p>{{ document.premium_amount }}</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card-box">
+                <h5>Coverage Amount</h5>
+                <p>{{ document.coverage_amount }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box mb-4">
+        <h5>Exclusions</h5>
+        <p>{{ document.exclusions }}</p>
+    </div>
+
+    <div class="card-box mb-4">
+        <h5>Claim Terms</h5>
+        <p>{{ document.claim_terms }}</p>
+    </div>
+
+    <div class="card-box mb-4">
+        <h5>AI Recommendation</h5>
+        <p>{{ document.recommendation }}</p>
+    </div>
+
+    <div class="card-box">
+        <h5>Extracted Text</h5>
+        <pre style="white-space: pre-wrap; color: rgba(255,255,255,0.75);">{{ document.extracted_text }}</pre>
+    </div>
+    <div class="card-box mb-4">
+    <h5>ML Predicted Expected Cost</h5>
+
+    {% if document.predicted_cost %}
+        <h3 class="brand-gradient">₹{{ document.predicted_cost }}</h3>
+    {% else %}
+        <p class="text-muted-custom">Prediction not available.</p>
+    {% endif %}
+</div>
+
+</div>
+
+{% endblock %}

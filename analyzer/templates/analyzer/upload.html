@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="glass p-5">
+
+            <div class="text-center mb-4">
+                <h2 class="fw-bold brand-gradient">Upload Insurance Document</h2>
+                <p class="text-muted-custom">
+                    Upload PDF, JPG, JPEG, or PNG document for AI analysis.
+                </p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="vstack gap-3">
+                {% csrf_token %}
+
+                <div>
+                    <label class="form-label">Document Title</label>
+                    {{ form.title }}
+                </div>
+
+                <div>
+                    <label class="form-label">Upload Document</label>
+                    {{ form.document }}
+                </div>
+
+                <button type="submit" class="btn btn-glow py-3 mt-3">
+                    Analyze Document
+                </button>
+                <div class="row g-3">
+                    
+                <div class="col-md-6">
+                    <label class="form-label">Age</label>
+                    {{ form.age }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Sex</label>
+                    {{ form.sex }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">BMI</label>
+                    {{ form.bmi }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Children</label>
+                    {{ form.children }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Smoker</label>
+                    {{ form.smoker }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Region</label>
+                    {{ form.region }}
+                </div>
+            </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="mb-5 text-center">
+    <h1 class="fw-bold brand-gradient">
+        <i class="bi bi-stars"></i> AI Recommendations
+    </h1>
+    <p class="text-muted-custom">
+        Combined recommendation report from all uploaded insurance documents.
+    </p>
+</div>
+
+<div class="glass p-4 p-md-5">
+
+    {% for doc in documents %}
+        <div class="card-box mb-4">
+
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h4 class="fw-bold mb-1">{{ doc.title }}</h4>
+                    <p class="text-muted-custom mb-0">
+                        Uploaded on {{ doc.uploaded_at|date:"d M Y" }}
+                    </p>
+                </div>
+
+                <div>
+                    {% if doc.risk_level == "High" %}
+                        <span class="badge bg-danger">High Risk</span>
+                    {% elif doc.risk_level == "Medium" %}
+                        <span class="badge bg-warning text-dark">Medium Risk</span>
+                    {% else %}
+                        <span class="badge bg-success">Low Risk</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <strong>Type:</strong>
+                    <p class="text-muted-custom">{{ doc.document_type }}</p>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Policy No:</strong>
+                    <p class="text-muted-custom">{{ doc.policy_number }}</p>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Premium:</strong>
+                    <p class="text-muted-custom">{{ doc.premium_amount }}</p>
+                </div>
+
+                <div class="col-md-3">
+                    <strong>Coverage:</strong>
+                    <p class="text-muted-custom">{{ doc.coverage_amount }}</p>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="text-info">AI Recommendation</h6>
+                <p class="text-muted-custom mb-0">
+                    {{ doc.recommendation }}
+                </p>
+            </div>
+
+            <a href="{% url 'result' doc.pk %}" class="btn btn-sm btn-outline-info rounded-pill">
+                View Full Analysis
+            </a>
+
+        </div>
+    {% empty %}
+        <div class="text-center py-5">
+            <h4>No recommendations available</h4>
+            <p class="text-muted-custom">Upload and analyze a document first.</p>
+            <a href="{% url 'upload_document' %}" class="btn btn-glow">
+                Upload Document
+            </a>
+        </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

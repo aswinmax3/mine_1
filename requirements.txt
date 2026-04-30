@@ -1,0 +1,13 @@
+Django
+Pillow
+pytesseract
+pdfminer.six
+spacy
+nltk
+scikit-learn
+pandas
+numpy
+joblib
+matplotlib
+transformers
+torch
