@@ -1,0 +1,14 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}Negotiation Tips{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">💰 Premium Negotiation Tips</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <label class="block font-semibold mb-2">Your profile (age, job, health, years insured, etc.)</label>
+    <textarea name="profile" rows="4" class="w-full border rounded-xl p-3 mb-4" placeholder="e.g. 35-year-old male, non-smoker, no pre-existing conditions..."></textarea>
+    <button type="submit" class="btn-primary w-full">💰 Generate Negotiation Script</button>
+  </form>
+</div>
+{% endblock %}
+

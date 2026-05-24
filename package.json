@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.94",
+    "framer-motion": "^12.39.0"
+  }
+}

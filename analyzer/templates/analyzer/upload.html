@@ -1,69 +1,39 @@
-{% extends "base.html" %}
+{% extends 'analyzer/base.html' %}
+{% block title %}Upload Policy{% endblock %}
 {% block content %}
-
-<div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
-        <div class="glass p-5">
-
-            <div class="text-center mb-4">
-                <h2 class="fw-bold brand-gradient">Upload Insurance Document</h2>
-                <p class="text-muted-custom">
-                    Upload PDF, JPG, JPEG, or PNG document for AI analysis.
-                </p>
-            </div>
-
-            <form method="post" enctype="multipart/form-data" class="vstack gap-3">
-                {% csrf_token %}
-
-                <div>
-                    <label class="form-label">Document Title</label>
-                    {{ form.title }}
-                </div>
-
-                <div>
-                    <label class="form-label">Upload Document</label>
-                    {{ form.document }}
-                </div>
-
-                <button type="submit" class="btn btn-glow py-3 mt-3">
-                    Analyze Document
-                </button>
-                <div class="row g-3">
-                    
-                <div class="col-md-6">
-                    <label class="form-label">Age</label>
-                    {{ form.age }}
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Sex</label>
-                    {{ form.sex }}
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">BMI</label>
-                    {{ form.bmi }}
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Children</label>
-                    {{ form.children }}
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Smoker</label>
-                    {{ form.smoker }}
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Region</label>
-                    {{ form.region }}
-                </div>
-            </div>
-            </form>
-
-        </div>
-    </div>
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-6">📄 Upload Insurance Policy</h1>
+  {% if error %}<div class="bg-red-100 text-red-700 p-4 rounded-xl mb-4">{{error}}</div>{% endif %}
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div id="drop-zone" class="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 transition mb-6">
+        <div class="text-5xl mb-4">☁️</div>
+        <p class="text-lg text-gray-600">Drag & drop PDF or image here</p>
+        <p class="text-sm text-gray-400 mt-2">Supports PDF, PNG, JPG</p>
+        <input type="file" name="policy_file" id="file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg">
+        <button type="button" onclick="document.getElementById('file-input').click()" class="btn-primary mt-4">Browse File</button>
+      </div>
+      <div id="file-name" class="text-center text-gray-600 mb-4 hidden"></div>
+      <button type="submit" class="btn-primary w-full text-lg">🔍 Analyze with AI</button>
+    </form>
+  </div>
 </div>
-
+<script>
+  const dz = document.getElementById('drop-zone');
+  const fi = document.getElementById('file-input');
+  fi.onchange = () => {
+    document.getElementById('file-name').textContent = '📎 ' + fi.files[0].name;
+    document.getElementById('file-name').classList.remove('hidden');
+  };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('border-blue-500','bg-blue-50'); };
+  dz.ondragleave = () => dz.classList.remove('border-blue-500','bg-blue-50');
+  dz.ondrop = e => {
+    e.preventDefault();
+    fi.files = e.dataTransfer.files;
+    fi.onchange();
+    dz.classList.remove('border-blue-500','bg-blue-50');
+  };
+</script>
 {% endblock %}
+

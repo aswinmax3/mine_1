@@ -1,94 +1,71 @@
-{% extends "base.html" %}
+{% extends 'analyzer/base.html' %}
+{% block title %}{{doc.name}} — Analysis{% endblock %}
 {% block content %}
-
-<div class="text-center mb-5">
-    <h1 class="fw-bold brand-gradient">AI Insurance Document Analyzer</h1>
-    <p class="text-muted-custom">
-        Extract, classify, analyze, and recommend using OCR, NLP, and AI logic.
-    </p>
+<div class="flex items-center gap-3 mb-6">
+  <h1 class="text-3xl font-bold">📊 {{doc.name}}</h1>
+  <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">{{doc.ai_analysis.policy_type|default:"Policy"}}</span>
 </div>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h2 class="brand-gradient">{{ total_documents }}</h2>
-            <p class="mb-0">Total Documents</p>
-        </div>
+{% with a=doc.ai_analysis %}
+{% if a %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card text-center">
+    <div class="text-6xl font-bold {% if doc.health_score >= 70 %}text-green-500{% elif doc.health_score >= 40 %}text-yellow-500{% else %}text-red-500{% endif %}">{{doc.health_score}}</div>
+    <div class="text-gray-500 mt-1">Health Score / 100</div>
+    <div class="text-sm text-gray-400 mt-2">{{a.health_reason}}</div>
+  </div>
+  <div class="card md:col-span-2">
+    <h3 class="font-bold text-lg mb-2">📝 Plain English Summary</h3>
+    <p class="text-gray-700">{{a.summary}}</p>
+    {% if a.key_numbers %}
+    <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+      {% for k,v in a.key_numbers.items %}
+        <div><span class="text-gray-400">{{k|title}}: </span><span class="font-semibold">{{v|default:"N/A"}}</span></div>
+      {% endfor %}
     </div>
-
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h2 class="brand-gradient">{{ policy_count }}</h2>
-            <p class="mb-0">Policies</p>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h2 class="brand-gradient">{{ claim_count }}</h2>
-            <p class="mb-0">Claims</p>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h2 class="brand-gradient">{{ high_risk_count }}</h2>
-            <p class="mb-0">High Risk</p>
-        </div>
-    </div>
+    {% endif %}
+  </div>
 </div>
 
-<div class="glass p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">Recent Documents</h4>
-        <a href="{% url 'upload_document' %}" class="btn btn-glow">
-            <i class="bi bi-cloud-upload"></i> Analyze New
-        </a>
-    </div>
-
-    <table class="table table-dark table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Policy No</th>
-                <th>Risk</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for doc in documents %}
-            <tr>
-                <td>{{ doc.title }}</td>
-                <td>{{ doc.document_type }}</td>
-                <td>{{ doc.policy_number }}</td>
-                <td>
-                    {% if doc.risk_level == "High" %}
-                        <span class="badge bg-danger">High</span>
-                    {% elif doc.risk_level == "Medium" %}
-                        <span class="badge bg-warning text-dark">Medium</span>
-                    {% else %}
-                        <span class="badge bg-success">Low</span>
-                    {% endif %}
-                </td>
-                <td>{{ doc.uploaded_at|date:"d M Y" }}</td>
-                <td>
-                    <a href="{% url 'result' doc.pk %}" class="btn btn-sm btn-outline-info rounded-pill">
-                        View
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center text-muted-custom py-4">
-                    No documents uploaded yet.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <div class="card">
+    <h3 class="font-bold text-lg mb-3 text-green-600">✅ What's Covered</h3>
+    <ul class="space-y-2">{% for item in a.covered %}<li class="flex gap-2"><span class="text-green-500">•</span>{{item}}</li>{% endfor %}</ul>
+  </div>
+  <div class="card">
+    <h3 class="font-bold text-lg mb-3 text-red-600">❌ Exclusions</h3>
+    <ul class="space-y-2">{% for item in a.exclusions %}<li class="flex gap-2"><span class="text-red-500">•</span>{{item}}</li>{% endfor %}</ul>
+  </div>
 </div>
 
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <div class="card border-l-4 border-red-500">
+    <h3 class="font-bold text-lg mb-3 text-red-600">🚨 Red Flags</h3>
+    <ul class="space-y-2">{% for item in a.red_flags %}<li class="text-red-700 flex gap-2"><span>⚠️</span>{{item}}</li>{% endfor %}</ul>
+  </div>
+  <div class="card border-l-4 border-yellow-500">
+    <h3 class="font-bold text-lg mb-3 text-yellow-600">🕵️ Hidden Traps</h3>
+    <ul class="space-y-2">{% for item in a.hidden_traps %}<li class="text-yellow-700 flex gap-2"><span>⚠️</span>{{item}}</li>{% endfor %}</ul>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <h3 class="font-bold text-lg mb-3">❓ Questions to Ask Your Insurer</h3>
+  <ol class="list-decimal list-inside space-y-2 text-gray-700">{% for q in a.recommended_questions %}<li>{{q}}</li>{% endfor %}</ol>
+</div>
+
+<div class="flex gap-4 flex-wrap">
+  <a href="/policy/{{doc.pk}}/chat/" class="btn-primary">💬 Ask Questions</a>
+  <a href="/policy/{{doc.pk}}/claim/" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition inline-block">📋 Check a Claim</a>
+  <a href="/policy/{{doc.pk}}/negotiate/" class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition inline-block">💰 Negotiation Tips</a>
+  <a href="/compare/" class="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition inline-block">⚖️ Compare Policies</a>
+</div>
+{% else %}
+<div class="card text-center py-12">
+  <div class="text-5xl mb-4">⚠️</div>
+  <p class="text-gray-500">AI analysis not available. Check your Gemini API key.</p>
+</div>
+{% endif %}
+{% endwith %}
 {% endblock %}
+

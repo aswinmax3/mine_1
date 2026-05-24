@@ -1,0 +1,46 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}Comparison Result{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-2">⚖️ Comparison Result</h1>
+{% with r=result %}
+<div class="card mb-6 border-l-4 {% if r.winner == name1 %}border-blue-500{% elif r.winner == name2 %}border-purple-500{% else %}border-gray-400{% endif %}">
+  <div class="text-2xl font-bold">🏆 Winner: {{r.winner}}</div>
+  <div class="text-gray-500 mt-1">{{r.winner_reason}}</div>
+</div>
+<div class="card mb-6 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b">
+        <th class="text-left p-3">Aspect</th>
+        <th class="p-3">{{name1}}</th>
+        <th class="p-3">{{name2}}</th>
+        <th class="p-3">Better</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in r.comparison_table %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-3 font-semibold">{{row.aspect}}</td>
+        <td class="p-3 text-center">{{row.policy1}}</td>
+        <td class="p-3 text-center">{{row.policy2}}</td>
+        <td class="p-3 text-center font-bold text-blue-600">{{row.better}}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="card">
+    <h3 class="font-bold mb-3">{{name1}}</h3>
+    <div class="mb-3"><div class="text-green-600 font-semibold mb-1">Pros</div><ul>{% for p in r.policy1_pros %}<li class="text-sm">✅ {{p}}</li>{% endfor %}</ul></div>
+    <div><div class="text-red-600 font-semibold mb-1">Cons</div><ul>{% for p in r.policy1_cons %}<li class="text-sm">❌ {{p}}</li>{% endfor %}</ul></div>
+  </div>
+  <div class="card">
+    <h3 class="font-bold mb-3">{{name2}}</h3>
+    <div class="mb-3"><div class="text-green-600 font-semibold mb-1">Pros</div><ul>{% for p in r.policy2_pros %}<li class="text-sm">✅ {{p}}</li>{% endfor %}</ul></div>
+    <div><div class="text-red-600 font-semibold mb-1">Cons</div><ul>{% for p in r.policy2_cons %}<li class="text-sm">❌ {{p}}</li>{% endfor %}</ul></div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+

@@ -1,0 +1,23 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}Compare Policies{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">⚖️ Compare Two Policies</h1>
+{% if error %}<div class="bg-red-100 text-red-700 p-4 rounded-xl mb-4">{{error}}</div>{% endif %}
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <label class="block font-semibold mb-2">Policy 1</label>
+        <input type="file" name="policy1" class="w-full border rounded-xl p-3" accept=".pdf,.png,.jpg">
+      </div>
+      <div>
+        <label class="block font-semibold mb-2">Policy 2</label>
+        <input type="file" name="policy2" class="w-full border rounded-xl p-3" accept=".pdf,.png,.jpg">
+      </div>
+    </div>
+    <button type="submit" class="btn-primary w-full">⚖️ Compare with AI</button>
+  </form>
+</div>
+{% endblock %}
+

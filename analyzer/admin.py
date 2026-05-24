@@ -1,18 +1,27 @@
 from django.contrib import admin
-from .models import InsuranceDocument
+
+from .models import PolicyDocument, ChatMessage, ClaimAssessment
 
 
-@admin.register(InsuranceDocument)
-class InsuranceDocumentAdmin(admin.ModelAdmin):
+@admin.register(PolicyDocument)
+class PolicyDocumentAdmin(admin.ModelAdmin):
     list_display = (
-        'title',
-        'document_type',
-        'policy_number',
-        'premium_amount',
-        'coverage_amount',
-        'risk_level',
+        'name',
+        'health_score',
         'uploaded_at',
     )
+    search_fields = ('name',)
+    list_filter = ('health_score', 'uploaded_at')
 
-    search_fields = ('title', 'policy_number', 'document_type')
-    list_filter = ('document_type', 'risk_level', 'uploaded_at')
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ('policy', 'role', 'created_at')
+    list_filter = ('role', 'created_at')
+
+
+@admin.register(ClaimAssessment)
+class ClaimAssessmentAdmin(admin.ModelAdmin):
+    list_display = ('policy', 'created_at')
+    list_filter = ('created_at',)
+

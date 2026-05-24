@@ -1,0 +1,22 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}Negotiation Script{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">💰 Your Negotiation Script</h1>
+{% with t=tips %}
+<div class="card mb-6 border-l-4 border-green-500">
+  <div class="text-2xl font-bold text-green-600">Potential Savings: {{t.estimated_savings_percent}}</div>
+  <p class="text-gray-600 mt-2">{{t.best_approach}}</p>
+</div>
+<div class="card mb-6">
+  <h3 class="font-bold text-lg mb-3">🗣️ What to Say (Copy & Use)</h3>
+  {% for s in t.scripts %}
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-3 font-mono text-sm">"{{s}}"</div>
+  {% endfor %}
+</div>
+<div class="card">
+  <h3 class="font-bold text-lg mb-3">✅ Actionable Tips</h3>
+  <ol class="list-decimal list-inside space-y-3 text-gray-700">{% for tip in t.tips %}<li>{{tip}}</li>{% endfor %}</ol>
+</div>
+{% endwith %}
+{% endblock %}
+

@@ -1,0 +1,50 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}InsureAI — Smart Policy Decoder{% endblock %}
+{% block content %}
+<div class="text-center py-12">
+  <h1 class="text-5xl font-bold text-gray-800 mb-4">🔍 Decode Any Insurance Policy</h1>
+  <p class="text-xl text-gray-500 mb-8">AI-powered analysis — uncover hidden clauses, compare plans, estimate claims</p>
+  <div class="flex gap-4 justify-center flex-wrap">
+    <a href="/upload/" class="btn-primary text-lg inline-block">📄 Upload Policy</a>
+    <a href="/compare/" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition text-lg inline-block">⚖️ Compare Policies</a>
+    <a href="/recommend/" class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition text-lg inline-block">✨ Get Recommendations</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+  <div class="card text-center">
+    <div class="text-4xl mb-3">🔍</div>
+    <h3 class="font-bold text-lg mb-2">Hidden Clause Detector</h3>
+    <p class="text-gray-500">AI finds waiting periods, sub-limits, and traps in fine print</p>
+  </div>
+  <div class="card text-center">
+    <div class="text-4xl mb-3">💬</div>
+    <h3 class="font-bold text-lg mb-2">Ask Your Policy</h3>
+    <p class="text-gray-500">Chat with your insurance document in plain English</p>
+  </div>
+  <div class="card text-center">
+    <div class="text-4xl mb-3">📊</div>
+    <h3 class="font-bold text-lg mb-2">Claim Predictor</h3>
+    <p class="text-gray-500">Estimate claim approval probability before you file</p>
+  </div>
+</div>
+
+{% if docs %}
+<h2 class="text-2xl font-bold mt-12 mb-4">Recent Policies</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {% for doc in docs %}
+  <a href="/policy/{{doc.pk}}/" class="card hover:shadow-xl transition flex items-center gap-4">
+    <div class="text-3xl">📄</div>
+    <div>
+      <div class="font-semibold">{{doc.name}}</div>
+      <div class="text-sm text-gray-400">{{doc.uploaded_at|date:"M d, Y"}}</div>
+      {% if doc.health_score %}
+        <div class="text-sm font-bold {% if doc.health_score >= 70 %}text-green-600{% elif doc.health_score >= 40 %}text-yellow-600{% else %}text-red-600{% endif %}">Score: {{doc.health_score}}/100</div>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
