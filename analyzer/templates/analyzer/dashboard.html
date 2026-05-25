@@ -55,6 +55,7 @@
 </div>
 
 <div class="flex gap-4 flex-wrap">
+  <a href="{% url 'download_policy_pdf' doc.pk %}" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-900 transition inline-block">Download PDF</a>
   <a href="/policy/{{doc.pk}}/chat/" class="btn-primary">💬 Ask Questions</a>
   <a href="/policy/{{doc.pk}}/claim/" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition inline-block">📋 Check a Claim</a>
   <a href="/policy/{{doc.pk}}/negotiate/" class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition inline-block">💰 Negotiation Tips</a>
@@ -68,4 +69,3 @@
 {% endif %}
 {% endwith %}
 {% endblock %}
-

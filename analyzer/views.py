@@ -1,5 +1,6 @@
 import io
 import json
+from xml.sax.saxutils import escape
 
 import pdfplumber
 import pytesseract
@@ -7,13 +8,18 @@ from PIL import Image
 from django.conf import settings
 print("GEMINI KEY LOADED:", settings.GEMINI_API_KEY)
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .models import PolicyDocument, ChatMessage, ClaimAssessment
 from .ml.ai_engine import (
@@ -109,6 +115,8 @@ def index(request):
 def upload_policy(request):
     if request.method == 'POST':
         f = request.FILES.get('policy_file')
+        expiry_date = request.POST.get('expiry_date') or None  # ADD THIS
+
         if not f:
             return render(request, 'analyzer/upload.html', {'error': 'No file uploaded'})
 
@@ -120,6 +128,7 @@ def upload_policy(request):
             name=f.name,
             file=f,
             extracted_text=text,
+            expiry_date=expiry_date,  # ADD THIS
         )
 
         analysis = decode_policy(text)
@@ -136,6 +145,94 @@ def upload_policy(request):
 def policy_dashboard(request, pk):
     doc = get_object_or_404(PolicyDocument, pk=pk)
     return render(request, 'analyzer/dashboard.html', {'doc': doc})
+
+
+def _pdf_text(value, fallback='N/A'):
+    if value is None or value == '':
+        return fallback
+    if isinstance(value, (list, tuple)):
+        return '<br/>'.join(escape(str(item)) for item in value) or fallback
+    if isinstance(value, dict):
+        return '<br/>'.join(f'{escape(str(key))}: {escape(str(val))}' for key, val in value.items()) or fallback
+    return escape(str(value))
+
+
+def download_policy_pdf(request, pk):
+    doc = get_object_or_404(PolicyDocument, pk=pk)
+    analysis = doc.ai_analysis or {}
+
+    buffer = io.BytesIO()
+    safe_name = ''.join(ch if ch.isalnum() or ch in ('-', '_') else '_' for ch in doc.name)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{safe_name}_analysis.pdf"'
+
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=0.7 * inch,
+        leftMargin=0.7 * inch,
+        topMargin=0.7 * inch,
+        bottomMargin=0.7 * inch,
+    )
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    heading_style = styles['Heading2']
+    body_style = styles['BodyText']
+
+    story = [
+        Paragraph('Insurance Policy Analysis Report', title_style),
+        Spacer(1, 12),
+        Paragraph(f'<b>Document:</b> {_pdf_text(doc.name)}', body_style),
+        Paragraph(f'<b>Uploaded:</b> {doc.uploaded_at.strftime("%d %b %Y, %I:%M %p")}', body_style),
+        Spacer(1, 14),
+    ]
+
+    summary_rows = [
+        ['Policy Type', _pdf_text(analysis.get('policy_type'), 'Policy')],
+        ['Health Score', _pdf_text(doc.health_score)],
+        ['Health Reason', _pdf_text(analysis.get('health_reason'))],
+    ]
+    table = Table(summary_rows, colWidths=[1.8 * inch, 4.6 * inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#EEF2FF')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1F2937')),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#CBD5E1')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.extend([table, Spacer(1, 16)])
+
+    sections = [
+        ('Plain English Summary', analysis.get('summary')),
+        ('Key Numbers', analysis.get('key_numbers')),
+        ("What's Covered", analysis.get('covered')),
+        ('Exclusions', analysis.get('exclusions')),
+        ('Red Flags', analysis.get('red_flags')),
+        ('Hidden Traps', analysis.get('hidden_traps')),
+        ('Questions to Ask Your Insurer', analysis.get('recommended_questions')),
+    ]
+
+    for heading, value in sections:
+        story.append(Paragraph(heading, heading_style))
+        story.append(Paragraph(_pdf_text(value), body_style))
+        story.append(Spacer(1, 10))
+
+    extracted_text = (doc.extracted_text or '').strip()
+    if extracted_text:
+        story.append(Paragraph('Extracted Text Preview', heading_style))
+        preview = extracted_text[:3500]
+        if len(extracted_text) > len(preview):
+            preview += '...'
+        story.append(Paragraph(_pdf_text(preview).replace('\n', '<br/>'), body_style))
+
+    pdf.build(story)
+    response.write(buffer.getvalue())
+    buffer.close()
+    return response
 
 
 def policy_chat(request, pk):
@@ -234,3 +331,113 @@ def recommend_view(request):
 
     return render(request, 'analyzer/recommend_form.html')
 
+def complaint_letter(request, pk):
+    doc = get_object_or_404(PolicyDocument, pk=pk)
+    
+    if request.method == 'POST':
+        insurer_name = request.POST.get('insurer_name', '')
+        complaint_type = request.POST.get('complaint_type', '')
+        user_details = request.POST.get('user_details', '')
+        
+        from .ml.ai_engine import generate_complaint_letter
+        letter = generate_complaint_letter(
+            policy_name=doc.name,
+            insurer_name=insurer_name,
+            complaint_type=complaint_type,
+            user_details=user_details,
+        )
+        return render(request, 'analyzer/complaint_result.html', {
+            'letter': letter, 'doc': doc
+        })
+    
+    return render(request, 'analyzer/complaint_form.html', {'doc': doc})
+
+@login_required
+def coverage_gap(request):
+    user_docs = PolicyDocument.objects.filter(user=request.user)
+    
+    if request.method == 'POST':
+        # Combine all policy texts
+        all_text = "\n\n---\n\n".join([
+            f"Policy: {doc.name}\n{doc.extracted_text[:2000]}"
+            for doc in user_docs
+        ])
+        
+        profile = {
+            'age': request.POST.get('age'),
+            'family_size': request.POST.get('family_size'),
+            'income': request.POST.get('income'),
+            'has_home': request.POST.get('has_home'),
+            'has_vehicle': request.POST.get('has_vehicle'),
+            'chronic_illness': request.POST.get('chronic_illness'),
+        }
+        
+        from .ml.ai_engine import analyze_coverage_gap
+        result = analyze_coverage_gap(all_text, str(profile))
+        
+        return render(request, 'analyzer/coverage_gap_result.html', {
+            'result': result,
+            'docs': user_docs,
+        })
+    
+    return render(request, 'analyzer/coverage_gap_form.html', {'docs': user_docs})
+
+@login_required
+def multi_policy_chat(request):
+    docs = PolicyDocument.objects.filter(user=request.user)
+    return render(request, 'analyzer/multi_chat.html', {'docs': docs})
+
+
+@require_POST
+@login_required
+def multi_policy_ask(request):
+    question = request.POST.get('question', '').strip()
+    if not question:
+        return JsonResponse({'error': 'Empty question'}, status=400)
+
+    docs = PolicyDocument.objects.filter(user=request.user)
+    combined_text = "\n\n---\n\n".join([
+        f"POLICY: {doc.name}\n{(doc.extracted_text or '')[:3000]}"
+        for doc in docs
+    ])
+
+    prompt = f"""
+The user has these insurance policies:
+
+{combined_text}
+
+Answer this question by referring to the relevant policy:
+{question}
+
+If multiple policies are relevant, mention which policy covers what.
+If nothing covers the question, say so clearly.
+"""
+    answer = ask_policy_question(combined_text, question) or 'Sorry, I could not find an answer.'
+    return JsonResponse({'answer': answer})
+
+def premium_calculator(request):
+    if request.method == 'POST':
+        data = request.POST
+        
+        from .ml.ai_engine import calculate_premium_estimate
+        result = calculate_premium_estimate(
+            age=data.get('age'),
+            gender=data.get('gender'),
+            smoker=data.get('smoker'),
+            bmi=data.get('bmi'),
+            policy_type=data.get('policy_type'),
+            coverage_amount=data.get('coverage_amount'),
+            city_tier=data.get('city_tier'),
+            family_size=data.get('family_size'),
+        )
+        return render(request, 'analyzer/premium_result.html', {'result': result, 'data': data})
+    
+    return render(request, 'analyzer/premium_form.html')
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '')
+        request.user.email = email
+        request.user.save()
+        return render(request, 'analyzer/profile.html', {'success': 'Profile updated!'})
+    return render(request, 'analyzer/profile.html')

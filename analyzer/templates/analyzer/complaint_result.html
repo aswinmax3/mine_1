@@ -1,0 +1,15 @@
+{% extends 'analyzer/base.html' %}
+{% block content %}
+<h2>Your Complaint Letter</h2>
+<p>Copy this letter and send it to your insurance company.</p>
+
+<div style="background:#f9f9f9; border:1px solid #ddd; padding:2rem; border-radius:8px; white-space:pre-wrap; font-family: monospace;">
+{{ letter }}
+</div>
+
+<div style="margin-top:1rem; display:flex; gap:1rem;">
+  <button onclick="navigator.clipboard.writeText(document.querySelector('div div').innerText)" 
+          class="btn-primary">Copy Letter</button>
+  <a href="{% url 'policy_dashboard' doc.pk %}" class="btn-primary">Back to Policy</a>
+</div>
+{% endblock %}

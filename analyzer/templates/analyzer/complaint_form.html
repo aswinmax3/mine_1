@@ -1,0 +1,33 @@
+{% extends 'analyzer/base.html' %}
+{% block content %}
+<h2>Generate Complaint Letter</h2>
+<p>Policy: {{ doc.name }}</p>
+
+<form method="post">
+  {% csrf_token %}
+  
+  <div>
+    <label>Insurance Company Name</label>
+    <input type="text" name="insurer_name" class="form-control" placeholder="e.g. HDFC ERGO" required>
+  </div>
+
+  <div>
+    <label>Type of Complaint</label>
+    <select name="complaint_type" class="form-control">
+      <option value="claim rejected without valid reason">Claim Rejected Without Valid Reason</option>
+      <option value="claim payment delayed beyond 30 days">Claim Payment Delayed</option>
+      <option value="wrong premium deducted">Wrong Premium Deducted</option>
+      <option value="policy cancelled without notice">Policy Cancelled Without Notice</option>
+      <option value="mis-selling of policy">Mis-selling of Policy</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Your Details (name, policy number, contact)</label>
+    <textarea name="user_details" class="form-control" rows="3" 
+              placeholder="Name: John Doe&#10;Policy No: ABC123&#10;Phone: 9999999999"></textarea>
+  </div>
+
+  <button type="submit" class="btn-primary mt-4">Generate Letter</button>
+</form>
+{% endblock %}

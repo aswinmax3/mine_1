@@ -1,0 +1,20 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}Premium Estimate — InsureAI{% endblock %}
+
+{% block content %}
+<div style="max-width:700px; margin:0 auto;">
+  <h2 style="margin-bottom:0.5rem;">Your Premium Estimate</h2>
+  <p style="color:#888; margin-bottom:2rem;">
+    Based on your profile — {{ data.policy_type }}, ₹{{ data.coverage_amount }} coverage
+  </p>
+
+  <div style="background:#f9f9f9; border:1px solid #e0e0e0; border-radius:12px; padding:2rem; white-space:pre-wrap; line-height:1.8;">
+    {{ result }}
+  </div>
+
+  <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+    <a href="{% url 'premium_calculator' %}" class="btn-primary">Calculate Again</a>
+    <a href="{% url 'index' %}" class="btn-primary" style="background:#555;">Dashboard</a>
+  </div>
+</div>
+{% endblock %}

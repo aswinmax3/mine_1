@@ -6,6 +6,9 @@
     <div class="mb-4">
         <h2 class="fw-bold brand-gradient">{{ document.title }}</h2>
         <p class="text-muted-custom">AI analysis result</p>
+        {% if document.pk %}
+            <a href="{% url 'download_policy_pdf' document.pk %}" class="btn btn-primary mt-2">Download PDF</a>
+        {% endif %}
     </div>
 
     <div class="row g-4 mb-4">

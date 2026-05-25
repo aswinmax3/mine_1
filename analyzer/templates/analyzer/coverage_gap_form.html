@@ -1,0 +1,45 @@
+{% extends 'analyzer/base.html' %}
+{% block content %}
+<h2>Coverage Gap Analyzer</h2>
+<p>Analyzing {{ docs.count }} of your policies to find what's missing.</p>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div>
+    <label>Your Age</label>
+    <input type="number" name="age" class="form-control" required>
+  </div>
+  <div>
+    <label>Family Size (including yourself)</label>
+    <input type="number" name="family_size" class="form-control" value="1" required>
+  </div>
+  <div>
+    <label>Annual Income (INR)</label>
+    <input type="number" name="income" class="form-control" placeholder="500000" required>
+  </div>
+  <div>
+    <label>Do you own a home?</label>
+    <select name="has_home" class="form-control">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <div>
+    <label>Do you own a vehicle?</label>
+    <select name="has_vehicle" class="form-control">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <div>
+    <label>Any chronic illness in family?</label>
+    <select name="chronic_illness" class="form-control">
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn-primary mt-4">Analyze My Coverage</button>
+</form>
+{% endblock %}

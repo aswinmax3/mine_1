@@ -1,0 +1,52 @@
+{% extends 'analyzer/base.html' %}
+{% block content %}
+<h2>Ask About All Your Policies</h2>
+<p>You have {{ docs.count }} policies. Ask anything across all of them.</p>
+
+<div style="margin-bottom:1rem; padding:1rem; background:#f0f4ff; border-radius:8px;">
+  <strong>Your policies:</strong>
+  {% for doc in docs %}
+    <span style="display:inline-block; margin:4px; padding:4px 10px; background:#dbeafe; border-radius:20px; font-size:0.85rem;">
+      {{ doc.name }}
+    </span>
+  {% endfor %}
+</div>
+
+<div id="chat-box" style="height:400px; overflow-y:auto; border:1px solid #ddd; border-radius:8px; padding:1rem; margin-bottom:1rem; background:#fafafa;">
+  <p style="color:#888; text-align:center;">Ask a question below...</p>
+</div>
+
+<div style="display:flex; gap:8px;">
+  <input type="text" id="question-input" class="form-control" 
+         placeholder="Which policy covers cancer treatment?">
+  <button onclick="askQuestion()" class="btn-primary" style="white-space:nowrap;">Ask</button>
+</div>
+
+<script>
+async function askQuestion() {
+  const input = document.getElementById('question-input');
+  const box = document.getElementById('chat-box');
+  const q = input.value.trim();
+  if (!q) return;
+
+  box.innerHTML += `<div style="text-align:right; margin:8px 0;"><span style="background:#0a0a0a; color:white; padding:8px 14px; border-radius:16px; display:inline-block;">${q}</span></div>`;
+  input.value = '';
+  box.innerHTML += `<div id="thinking" style="color:#888; padding:8px;">Thinking...</div>`;
+  box.scrollTop = box.scrollHeight;
+
+  const res = await fetch("{% url 'multi_policy_ask' %}", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}'},
+    body: `question=${encodeURIComponent(q)}`
+  });
+  const data = await res.json();
+  document.getElementById('thinking').remove();
+  box.innerHTML += `<div style="text-align:left; margin:8px 0;"><span style="background:#e5e7eb; padding:8px 14px; border-radius:16px; display:inline-block; max-width:80%;">${data.answer}</span></div>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById('question-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') askQuestion();
+});
+</script>
+{% endblock %}

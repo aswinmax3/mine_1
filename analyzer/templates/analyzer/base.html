@@ -15,6 +15,14 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
   <nav class="gradient-bg text-white px-6 py-4 flex items-center justify-between shadow-lg">
+    <a href="{% url 'multi_policy_chat' %}"
+   class="{% if request.resolver_match.url_name == 'multi_policy_chat' %}active{% endif %}">
+  All Policies Chat
+</a>
+<a href="{% url 'premium_calculator' %}"
+   class="{% if request.resolver_match.url_name == 'premium_calculator' %}active{% endif %}">
+  Premium Calculator
+</a>
     <a href="{% url 'home' %}" class="text-2xl font-bold">🛡️ InsureAI</a>
     <div class="flex gap-4 text-sm items-center">
       {% if user.is_authenticated %}

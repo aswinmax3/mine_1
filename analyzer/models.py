@@ -10,6 +10,10 @@ class PolicyDocument(models.Model):
     ai_analysis = models.JSONField(null=True, blank=True)
     health_score = models.IntegerField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    reminder_sent_30 = models.BooleanField(default=False)
+    reminder_sent_15 = models.BooleanField(default=False)
+    reminder_sent_7 = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

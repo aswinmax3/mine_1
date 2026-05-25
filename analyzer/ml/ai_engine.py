@@ -212,3 +212,79 @@ User profile: {user_profile}"""
 
     return ask_ai(prompt, json_mode=True)
 
+
+def generate_complaint_letter(policy_name, insurer_name, complaint_type, user_details):
+    prompt = f"""
+You are an expert insurance consumer advocate in India.
+
+Write a formal complaint letter for the following situation:
+
+Policy Name: {policy_name}
+Insurance Company: {insurer_name}
+Complaint Type: {complaint_type}
+User Details: {user_details}
+
+Write a professional, firm complaint letter addressed to the Insurance Company
+and CC to IRDAI (Insurance Regulatory and Development Authority of India).
+
+Include:
+1. Clear subject line
+2. Policy details section
+3. Description of the complaint
+4. What resolution is expected
+5. Timeline given (15 days)
+6. Mention of escalation to IRDAI if unresolved
+7. Proper closing
+
+Format as a ready-to-send letter.
+"""
+    return ask_ai(prompt)  # use whatever your existing AI call function is named
+
+def analyze_coverage_gap(all_policies_text, user_profile):
+    prompt = f"""
+You are an expert insurance advisor in India.
+
+The user has the following profile:
+{user_profile}
+
+They currently have these insurance policies:
+{all_policies_text}
+
+Analyze their coverage and identify:
+
+1. COVERED RISKS — What risks are well covered
+2. GAPS — What important risks are NOT covered at all
+3. UNDERINSURED — Areas where coverage exists but is insufficient
+4. PRIORITY RECOMMENDATIONS — Top 3 policies they should buy next (with estimated premium range in INR)
+5. OVERALL COVERAGE SCORE — out of 100
+
+Be specific and practical for an Indian user.
+Return as structured analysis.
+"""
+    return ask_ai(prompt)
+
+def calculate_premium_estimate(age, gender, smoker, bmi, policy_type, 
+                                coverage_amount, city_tier, family_size):
+    prompt = f"""
+You are an insurance premium expert in India with knowledge of all major insurers.
+
+Calculate a realistic premium estimate for:
+- Age: {age}
+- Gender: {gender}
+- Smoker: {smoker}
+- BMI: {bmi}
+- Policy Type: {policy_type}
+- Coverage Amount: ₹{coverage_amount}
+- City Tier: {city_tier}
+- Family Size: {family_size}
+
+Provide:
+1. ESTIMATED ANNUAL PREMIUM RANGE (min - max in INR)
+2. TOP 3 RECOMMENDED INSURERS with their approximate premium
+3. KEY FACTORS affecting your premium
+4. TIPS to reduce premium
+5. WHAT TO WATCH OUT FOR when buying
+
+Be specific with INR amounts. Use current Indian market rates.
+"""
+    return ask_ai(prompt)
