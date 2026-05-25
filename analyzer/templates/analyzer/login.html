@@ -1,51 +1,54 @@
-{% extends "base.html" %}
+{% extends 'analyzer/base.html' %}
+{% block title %}Login - InsureAI{% endblock %}
 {% block content %}
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="glass p-5">
+<div class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+      <div class="text-center mb-8">
+        <div class="text-4xl mb-4">🔐</div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h2>
+        <p class="text-gray-600">Login to analyze insurance documents</p>
+      </div>
 
-            <div class="text-center mb-4">
-                <div class="display-4 brand-gradient mb-2">
-                    <i class="bi bi-shield-lock-fill"></i>
-                </div>
-                <h2 class="fw-bold brand-gradient">Welcome Back</h2>
-                <p class="text-muted-custom">Login to analyze insurance documents.</p>
-            </div>
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
 
-            <form method="post" class="vstack gap-3">
-                {% csrf_token %}
-
-                <div>
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" placeholder="Enter username" required>
-                </div>
-
-                <div>
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Enter password" required>
-                </div>
-
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        Invalid username or password.
-                    </div>
-                {% endif %}
-
-                <button type="submit" class="btn btn-glow py-3 mt-2">
-                    <i class="bi bi-box-arrow-in-right"></i> Login
-                </button>
-            </form>
-
-            <p class="text-center mt-4 mb-0 text-muted-custom">
-                New user?
-                <a href="{% url 'register' %}" class="text-info fw-bold text-decoration-none">
-                    Create account
-                </a>
-            </p>
-
+        <div>
+          <label class="block text-gray-700 font-semibold mb-2">Username</label>
+          <input type="text" name="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Enter username" required>
         </div>
+
+        <div>
+          <label class="block text-gray-700 font-semibold mb-2">Password</label>
+          <input type="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Enter password" required>
+        </div>
+
+        {% if error %}
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {{ error }}
+          </div>
+        {% endif %}
+
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition mt-6">
+          🔐 Login
+        </button>
+      </form>
+
+      <p class="text-center mt-6 text-gray-600">
+        New user?
+        <a href="{% url 'register' %}" class="text-blue-600 font-semibold hover:text-blue-700">
+          Create account
+        </a>
+      </p>
+
+      <p class="text-center mt-4 text-gray-600">
+        <a href="{% url 'home' %}" class="text-gray-600 hover:text-gray-800">
+          Back to home
+        </a>
+      </p>
     </div>
+  </div>
 </div>
 
 {% endblock %}

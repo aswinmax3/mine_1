@@ -1,0 +1,169 @@
+{% extends 'analyzer/base.html' %}
+{% block title %}InsureAI - Smart Insurance Policy Analyzer{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <!-- Hero Section -->
+  <div class="max-w-6xl mx-auto px-4 py-20 text-center">
+    <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
+      🛡️ InsureAI
+    </h1>
+    <p class="text-2xl text-gray-600 mb-4">
+      Decode Insurance Policies with AI
+    </p>
+    <p class="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
+      Understand your insurance documents better. Uncover hidden clauses, compare policies, and make informed decisions with AI-powered analysis.
+    </p>
+    
+    <div class="flex gap-4 justify-center flex-wrap">
+      <a href="{% url 'login' %}" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition text-lg">
+        🔐 Login
+      </a>
+      <a href="{% url 'register' %}" class="bg-green-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-green-700 transition text-lg">
+        📝 Create Account
+      </a>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="bg-white py-20">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
+        Powerful Features
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">🔍</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Policy Analysis</h3>
+          <p class="text-gray-600">
+            AI-powered analysis to uncover hidden clauses, waiting periods, and potential issues in your insurance documents.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">⚖️</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Compare Policies</h3>
+          <p class="text-gray-600">
+            Upload multiple policies and get a detailed comparison to find the best coverage at the right price.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">✨</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Smart Recommendations</h3>
+          <p class="text-gray-600">
+            Get personalized insurance recommendations based on your profile and coverage needs.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">💬</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Ask Your Policy</h3>
+          <p class="text-gray-600">
+            Chat with your insurance documents and get instant answers to your questions in plain English.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-red-50 to-red-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Claim Predictor</h3>
+          <p class="text-gray-600">
+            Estimate claim approval probability before filing to understand your coverage better.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-8 rounded-lg shadow">
+          <div class="text-4xl mb-4">🤝</div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Negotiation Tips</h3>
+          <p class="text-gray-600">
+            Get AI-powered tips and strategies for negotiating better terms with your insurance provider.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works Section -->
+  <div class="py-20">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
+        How It Works
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="text-center">
+          <div class="bg-blue-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">Create Account</h3>
+          <p class="text-gray-600">Sign up and get started in seconds</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-green-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">Upload Policies</h3>
+          <p class="text-gray-600">Upload your insurance documents as PDF or images</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-purple-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">AI Analysis</h3>
+          <p class="text-gray-600">Get instant insights powered by advanced AI</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-orange-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">Make Decisions</h3>
+          <p class="text-gray-600">Take informed decisions about your insurance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 py-16 text-white">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-3xl font-bold mb-6">Ready to Understand Your Insurance?</h2>
+      <p class="text-xl mb-8 opacity-90">
+        Join thousands of users who have simplified their insurance decisions with InsureAI
+      </p>
+      <div class="flex gap-4 justify-center flex-wrap">
+        <a href="{% url 'register' %}" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+          Get Started Free
+        </a>
+        <a href="{% url 'login' %}" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+          Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="bg-gray-800 text-gray-300 py-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div>
+          <h4 class="text-white font-bold mb-4">About InsureAI</h4>
+          <p class="text-sm">Making insurance policies understandable through AI-powered analysis.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-bold mb-4">Features</h4>
+          <ul class="text-sm space-y-2">
+            <li><a href="#" class="hover:text-white">Policy Analysis</a></li>
+            <li><a href="#" class="hover:text-white">Compare Policies</a></li>
+            <li><a href="#" class="hover:text-white">Get Recommendations</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold mb-4">Legal</h4>
+          <ul class="text-sm space-y-2">
+            <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-700 pt-8 text-center text-sm">
+        <p>&copy; 2026 InsureAI. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

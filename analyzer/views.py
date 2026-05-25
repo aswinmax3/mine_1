@@ -11,6 +11,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 
 from .models import PolicyDocument, ChatMessage, ClaimAssessment
 from .ml.ai_engine import (
@@ -20,6 +23,64 @@ from .ml.ai_engine import (
     assess_claim,
     get_negotiation_tips,
 )
+
+
+def home(request):
+    """Home page - landing page for unauthenticated users."""
+    if request.user.is_authenticated:
+        return redirect('index')
+    return render(request, 'analyzer/home.html')
+
+
+def login_view(request):
+    """User login view."""
+    if request.user.is_authenticated:
+        return redirect('index')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('index')
+        else:
+            return render(request, 'analyzer/login.html', {'error': 'Invalid username or password'})
+    
+    return render(request, 'analyzer/login.html')
+
+
+def register_view(request):
+    """User registration view."""
+    if request.user.is_authenticated:
+        return redirect('index')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        
+        if not username or not password1 or not password2:
+            return render(request, 'analyzer/register.html', {'error': 'All fields are required'})
+        
+        if password1 != password2:
+            return render(request, 'analyzer/register.html', {'error': 'Passwords do not match'})
+        
+        if User.objects.filter(username=username).exists():
+            return render(request, 'analyzer/register.html', {'error': 'Username already exists'})
+        
+        user = User.objects.create_user(username=username, password=password1)
+        login(request, user)
+        return redirect('index')
+    
+    return render(request, 'analyzer/register.html')
+
+
+def logout_view(request):
+    """User logout view."""
+    logout(request)
+    return redirect('home')
 
 
 def extract_text(file_obj):
@@ -81,6 +142,19 @@ def policy_chat(request, pk):
     doc = get_object_or_404(PolicyDocument, pk=pk)
     messages = doc.messages.order_by('created_at')
     return render(request, 'analyzer/chat.html', {'doc': doc, 'messages': messages})
+
+
+@login_required
+def delete_policy(request, pk):
+    """Delete a policy document."""
+    doc = get_object_or_404(PolicyDocument, pk=pk)
+    
+    # Check if the user owns the policy
+    if doc.user != request.user:
+        return redirect('index')
+    
+    doc.delete()
+    return redirect('index')
 
 
 @require_POST
