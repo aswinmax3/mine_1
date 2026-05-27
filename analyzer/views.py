@@ -439,5 +439,20 @@ def profile_view(request):
         email = request.POST.get('email', '')
         request.user.email = email
         request.user.save()
-        return render(request, 'analyzer/profile.html', {'success': 'Profile updated!'})
-    return render(request, 'analyzer/profile.html')
+        return render(request, 'analyzer/profile.html', {
+            'success': 'Profile updated successfully!',
+            'policy_count': PolicyDocument.objects.filter(user=request.user).count(),
+            'claim_count': ClaimAssessment.objects.filter(policy__user=request.user).count(),
+        })
+    return render(request, 'analyzer/profile.html', {
+        'policy_count': PolicyDocument.objects.filter(user=request.user).count(),
+        'claim_count': ClaimAssessment.objects.filter(policy__user=request.user).count(),
+    })
+
+@require_POST
+def set_expiry(request, pk):
+    doc = get_object_or_404(PolicyDocument, pk=pk)
+    expiry_date = request.POST.get('expiry_date') or None
+    doc.expiry_date = expiry_date
+    doc.save()
+    return redirect('policy_dashboard', pk=pk)

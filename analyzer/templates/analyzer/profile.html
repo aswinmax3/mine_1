@@ -1,20 +1,78 @@
 {% extends 'analyzer/base.html' %}
+{% block title %}My Profile — InsureAI{% endblock %}
 {% block content %}
-<h2>Your Profile</h2>
 
-{% if success %}<p style="color:green;">{{ success }}</p>{% endif %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-2">👤 My Profile</h1>
+  <p class="text-gray-500 mb-8">Manage your account and notification settings.</p>
 
-<form method="post">
-  {% csrf_token %}
-  <div>
-    <label>Username</label>
-    <input type="text" value="{{ user.username }}" class="form-control" disabled>
+  {% if success %}
+  <div class="bg-green-100 text-green-800 px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+    ✅ {{ success }}
   </div>
-  <div>
-    <label>Email (for policy reminders)</label>
-    <input type="email" name="email" value="{{ user.email }}" class="form-control" 
-           placeholder="your@email.com">
+  {% endif %}
+
+  <div class="card mb-6">
+    <h2 class="font-bold text-lg mb-4 text-gray-700">Account Details</h2>
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Username</label>
+        <input type="text" value="{{ user.username }}"
+               class="w-full border border-gray-200 rounded-lg px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed"
+               disabled>
+        <p class="text-xs text-gray-400 mt-1">Username cannot be changed.</p>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-600 mb-1">
+          Email Address
+          <span class="text-blue-500 font-normal">(used for policy expiry reminders)</span>
+        </label>
+        <input type="email" name="email" value="{{ user.email }}"
+               placeholder="your@email.com"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        {% if not user.email %}
+        <p class="text-xs text-orange-500 mt-1">⚠️ Add your email to receive policy expiry reminders.</p>
+        {% endif %}
+      </div>
+
+      <button type="submit"
+              class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+        Save Changes
+      </button>
+    </form>
   </div>
-  <button type="submit" class="btn-primary mt-4">Save</button>
-</form>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-blue-600">{{ policy_count }}</div>
+      <div class="text-sm text-gray-500 mt-1">Policies Uploaded</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-purple-600">{{ claim_count }}</div>
+      <div class="text-sm text-gray-500 mt-1">Claims Checked</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-green-600">
+        {% if user.email %}✓{% else %}✗{% endif %}
+      </div>
+      <div class="text-sm text-gray-500 mt-1">Email Set</div>
+    </div>
+  </div>
+
+  <!-- Quick links -->
+  <div class="card">
+    <h2 class="font-bold text-lg mb-4 text-gray-700">Quick Actions</h2>
+    <div class="flex flex-wrap gap-3">
+      <a href="{% url 'index' %}" class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition">📊 Dashboard</a>
+      <a href="{% url 'upload_policy' %}" class="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100 transition">📄 Upload Policy</a>
+      <a href="{% url 'coverage_gap' %}" class="bg-orange-50 text-orange-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-100 transition">🔍 Coverage Gap</a>
+      <a href="{% url 'premium_calculator' %}" class="bg-purple-50 text-purple-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-100 transition">🧮 Premium Calculator</a>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

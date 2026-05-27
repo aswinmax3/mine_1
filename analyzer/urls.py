@@ -23,4 +23,5 @@ urlpatterns = [
     path('chat/all/ask/', views.multi_policy_ask, name='multi_policy_ask'),
     path('premium-calculator/', views.premium_calculator, name='premium_calculator'),
     path('profile/', views.profile_view, name='profile'),
+    path('policy/<int:pk>/set-expiry/', views.set_expiry, name='set_expiry'),
 ]

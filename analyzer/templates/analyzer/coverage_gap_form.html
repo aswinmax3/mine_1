@@ -1,45 +1,116 @@
 {% extends 'analyzer/base.html' %}
+{% block title %}Coverage Gap Analyzer — InsureAI{% endblock %}
 {% block content %}
-<h2>Coverage Gap Analyzer</h2>
-<p>Analyzing {{ docs.count }} of your policies to find what's missing.</p>
 
-<form method="post">
-  {% csrf_token %}
+<div class="max-w-2xl mx-auto">
 
-  <div>
-    <label>Your Age</label>
-    <input type="number" name="age" class="form-control" required>
-  </div>
-  <div>
-    <label>Family Size (including yourself)</label>
-    <input type="number" name="family_size" class="form-control" value="1" required>
-  </div>
-  <div>
-    <label>Annual Income (INR)</label>
-    <input type="number" name="income" class="form-control" placeholder="500000" required>
-  </div>
-  <div>
-    <label>Do you own a home?</label>
-    <select name="has_home" class="form-control">
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-  </div>
-  <div>
-    <label>Do you own a vehicle?</label>
-    <select name="has_vehicle" class="form-control">
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-  </div>
-  <div>
-    <label>Any chronic illness in family?</label>
-    <select name="chronic_illness" class="form-control">
-      <option value="no">No</option>
-      <option value="yes">Yes</option>
-    </select>
+  <!-- Header -->
+  <div class="text-center mb-10">
+    <div class="text-6xl mb-4">🔍</div>
+    <h1 class="text-4xl font-bold text-gray-800 mb-3">Coverage Gap Analyzer</h1>
+    <p class="text-gray-500 text-lg">Tell us about yourself — we'll find what's missing in your insurance.</p>
+    {% if docs %}
+    <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+      📄 Analyzing {{ docs.count }} of your uploaded policies
+    </div>
+    {% else %}
+    <div class="mt-4 inline-flex items-center gap-2 bg-orange-50 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
+      ⚠️ No policies uploaded yet — results will be general recommendations
+    </div>
+    {% endif %}
   </div>
 
-  <button type="submit" class="btn-primary mt-4">Analyze My Coverage</button>
-</form>
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Personal Info -->
+    <div class="card mb-6">
+      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
+        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+        Personal Information
+      </h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Your Age</label>
+          <input type="number" name="age" min="18" max="80" required
+                 placeholder="e.g. 30"
+                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Family Size</label>
+          <select name="family_size"
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <option value="1">Just Me</option>
+            <option value="2">2 Members</option>
+            <option value="3">3 Members</option>
+            <option value="4">4 Members</option>
+            <option value="5">5+ Members</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Annual Income</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">₹</span>
+            <input type="number" name="income" required
+                   placeholder="e.g. 500000"
+                   class="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assets -->
+    <div class="card mb-6">
+      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
+        <span class="bg-green-100 text-green-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+        Your Assets
+      </h2>
+      <div class="grid grid-cols-2 gap-4">
+        <label class="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-blue-50 transition has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
+          <input type="hidden" name="has_home" value="no">
+          <input type="checkbox" name="has_home" value="yes" class="w-5 h-5 accent-blue-600">
+          <div>
+            <div class="text-2xl">🏠</div>
+            <div class="font-semibold text-gray-700 text-sm">I own a home</div>
+          </div>
+        </label>
+        <label class="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-blue-50 transition has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
+          <input type="hidden" name="has_vehicle" value="no">
+          <input type="checkbox" name="has_vehicle" value="yes" class="w-5 h-5 accent-blue-600">
+          <div>
+            <div class="text-2xl">🚗</div>
+            <div class="font-semibold text-gray-700 text-sm">I own a vehicle</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Health -->
+    <div class="card mb-8">
+      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
+        <span class="bg-purple-100 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+        Health Profile
+      </h2>
+      <p class="text-sm text-gray-500 mb-3">Does anyone in your family have a chronic illness?</p>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-red-200 hover:bg-red-50 transition has-[:checked]:border-red-400 has-[:checked]:bg-red-50">
+          <input type="radio" name="chronic_illness" value="yes" class="accent-red-500 w-4 h-4">
+          <span class="font-medium text-gray-700">Yes ❤️‍🩹</span>
+        </label>
+        <label class="flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-green-200 hover:bg-green-50 transition has-[:checked]:border-green-400 has-[:checked]:bg-green-50">
+          <input type="radio" name="chronic_illness" value="no" checked class="accent-green-500 w-4 h-4">
+          <span class="font-medium text-gray-700">No 💪</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-200 flex items-center justify-center gap-3">
+      🔍 Analyze My Coverage
+    </button>
+    <p class="text-center text-sm text-gray-400 mt-3">Usually takes 10–15 seconds</p>
+  </form>
+
+</div>
 {% endblock %}

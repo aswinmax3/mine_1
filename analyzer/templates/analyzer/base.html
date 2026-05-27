@@ -9,39 +9,62 @@
   <style>
     .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #0d6efd 100%); }
     .card { background: white; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 1.5rem; }
-    .btn-primary { background: rgb(29 78 216); color: white; padding: 0.75rem 1.5rem; border-radius: 1rem; font-weight: 600; }
+    .btn-primary { background: rgb(29 78 216); color: white; padding: 0.75rem 1.5rem; border-radius: 1rem; font-weight: 600; display: inline-block; }
     .btn-primary:hover { background: rgb(30 64 175); }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-  <nav class="gradient-bg text-white px-6 py-4 flex items-center justify-between shadow-lg">
-    <a href="{% url 'multi_policy_chat' %}"
-   class="{% if request.resolver_match.url_name == 'multi_policy_chat' %}active{% endif %}">
-  All Policies Chat
-</a>
-<a href="{% url 'premium_calculator' %}"
-   class="{% if request.resolver_match.url_name == 'premium_calculator' %}active{% endif %}">
-  Premium Calculator
-</a>
-    <a href="{% url 'home' %}" class="text-2xl font-bold">🛡️ InsureAI</a>
-    <div class="flex gap-4 text-sm items-center">
+  <nav class="gradient-bg text-white px-6 py-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+
+      <!-- Logo -->
+      <a href="{% url 'home' %}" class="text-2xl font-bold whitespace-nowrap">🛡️ InsureAI</a>
+
       {% if user.is_authenticated %}
-        <a href="{% url 'index' %}" class="hover:text-blue-200">Dashboard</a>
-        <a href="{% url 'upload_policy' %}" class="hover:text-blue-200">Upload Policy</a>
-        <a href="{% url 'compare' %}" class="hover:text-blue-200">Compare</a>
-        <a href="{% url 'recommend' %}" class="hover:text-blue-200">Get Recommendations</a>
-        <span class="text-blue-200">|</span>
-        <span class="text-blue-100">{{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700">Logout</a>
+      <!-- Main nav links -->
+      <div class="flex flex-wrap gap-2 text-sm items-center">
+        <a href="{% url 'index' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'index' %}bg-white/20{% endif %}">Dashboard</a>
+        <a href="{% url 'upload_policy' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'upload_policy' %}bg-white/20{% endif %}">Upload</a>
+        <a href="{% url 'compare' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'compare' %}bg-white/20{% endif %}">Compare</a>
+        <a href="{% url 'recommend' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'recommend' %}bg-white/20{% endif %}">Recommend</a>
+        <a href="{% url 'multi_policy_chat' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'multi_policy_chat' %}bg-white/20{% endif %}">All Policies Chat</a>
+        <a href="{% url 'premium_calculator' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'premium_calculator' %}bg-white/20{% endif %}">Premium Calc</a>
+        <a href="{% url 'coverage_gap' %}" class="hover:text-blue-200 px-2 py-1 rounded {% if request.resolver_match.url_name == 'coverage_gap' %}bg-white/20{% endif %}">Coverage Gap</a>
+      </div>
+
+      <!-- Right side -->
+      <div class="flex gap-2 text-sm items-center">
+        <a href="{% url 'profile' %}" class="flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition">
+          👤 {{ user.username }}
+        </a>
+        <form method="post" action="{% url 'logout' %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 text-white text-sm">Logout</button>
+        </form>
+      </div>
+
       {% else %}
+      <div class="flex gap-3 text-sm items-center">
         <a href="{% url 'login' %}" class="hover:text-blue-200">Login</a>
         <a href="{% url 'register' %}" class="bg-green-600 px-3 py-1 rounded hover:bg-green-700">Register</a>
+      </div>
       {% endif %}
+
     </div>
   </nav>
+
   <main class="max-w-6xl mx-auto px-4 py-8">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 p-3 rounded-lg text-sm
+          {% if message.tags == 'success' %}bg-green-100 text-green-800
+          {% elif message.tags == 'error' %}bg-red-100 text-red-800
+          {% else %}bg-blue-100 text-blue-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>
 </html>
-

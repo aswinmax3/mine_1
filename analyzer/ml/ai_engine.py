@@ -4,7 +4,6 @@ import time
 import re
 
 import httpx
-
 from django.conf import settings
 
 
@@ -15,32 +14,28 @@ from django.conf import settings
 def _init_clients():
     gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
-    gemini = None
+    gemini_client = None
+    gemini_model_name = gemini_model
     if getattr(settings, "GEMINI_API_KEY", None):
         try:
-            import google.generativeai as genai
-
-            genai.configure(api_key=settings.GEMINI_API_KEY)
-            gemini = genai.GenerativeModel(gemini_model)
+            from google import genai as google_genai
+            gemini_client = google_genai.Client(api_key=settings.GEMINI_API_KEY)
         except Exception:
-            gemini = None
+            gemini_client = None
 
     groq_client = None
     if getattr(settings, "GROQ_API_KEY", None):
         try:
             from groq import Groq
-
             groq_client = Groq(api_key=settings.GROQ_API_KEY)
         except Exception:
             groq_client = None
 
     openrouter_key = getattr(settings, "OPENROUTER_API_KEY", None)
-    return gemini, groq_client, openrouter_key
+    return gemini_client, gemini_model_name, groq_client, openrouter_key
 
 
-
-_GEMINI, _GROQ_CLIENT, _OPENROUTER_KEY = _init_clients()
-
+_GEMINI_CLIENT, _GEMINI_MODEL, _GROQ_CLIENT, _OPENROUTER_KEY = _init_clients()
 
 def _safe_json_loads(text: str):
     # Remove code fences if any
@@ -57,9 +52,12 @@ def _safe_json_loads(text: str):
 
 
 def _call_gemini(prompt: str) -> str:
-    if _GEMINI is None:
+    if _GEMINI_CLIENT is None:
         raise RuntimeError("GEMINI_API_KEY not configured")
-    r = _GEMINI.generate_content(prompt)
+    r = _GEMINI_CLIENT.models.generate_content(
+        model=_GEMINI_MODEL,
+        contents=prompt,
+    )
     return getattr(r, "text", None) or str(r)
 
 
@@ -288,3 +286,26 @@ Provide:
 Be specific with INR amounts. Use current Indian market rates.
 """
     return ask_ai(prompt)
+
+def ask_policy_question(policy_text: str, question: str, doc_id: int = None):
+    # Use RAG if doc_id provided
+    if doc_id:
+        try:
+            from .rag_engine import index_policy, get_relevant_chunks
+            index_policy(doc_id, policy_text)
+            relevant_text = get_relevant_chunks(doc_id, question)
+        except:
+            relevant_text = policy_text[:5000]
+    else:
+        relevant_text = policy_text[:5000]
+
+    prompt = f"""You are an Indian insurance expert. Answer ONLY from the policy text below.
+If not in policy, say exactly: "This is not mentioned in your policy."
+Be specific, cite the relevant clause if possible.
+Keep answer under 150 words.
+
+Question: {question}
+
+Relevant Policy Section:
+{relevant_text}"""
+    return ask_ai(prompt, json_mode=False)
