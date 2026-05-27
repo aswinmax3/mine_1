@@ -116,21 +116,24 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3">
-    <a class="navbar-brand fw-bold brand-gradient fs-4" href="{% url 'dashboard' %}">
+    <a class="navbar-brand fw-bold brand-gradient fs-4" href="{% url 'index' %}">
+
         <i class="bi bi-shield-check"></i> Insurance AI Analyzer
     </a>
 
     <div class="ms-auto d-flex align-items-center">
         {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="nav-link-custom">
+            <a href="{% url 'index' %}" class="nav-link-custom">
+
+
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
-            <a href="{% url 'upload_document' %}" class="nav-link-custom">
+            <a href="{% url 'upload_policy' %}" class="nav-link-custom">
                 <i class="bi bi-cloud-upload"></i> Upload
             </a>
 
-            <a href="{% url 'recommendations' %}" class="nav-link-custom">
+            <a href="{% url 'recommend' %}" class="nav-link-custom">
                 <i class="bi bi-stars"></i> Recommendations
             </a>
 
