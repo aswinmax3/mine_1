@@ -127,11 +127,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Find these lines and update them:
+TIME_ZONE = 'Asia/Kolkata'  # IST for Kerala
+USE_TZ = True
 
 USE_I18N = True
 
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -152,3 +153,12 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')      # your gmail
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # gmail app password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kumar7shankar@gmail.com'      # your Gmail
+EMAIL_HOST_PASSWORD = 'zxfx olhg fmvd adib'      # Gmail App Password (NOT your login password)
+DEFAULT_FROM_EMAIL = 'InsureAI <aswinmax3@gmail.com>'

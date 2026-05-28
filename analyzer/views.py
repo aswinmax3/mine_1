@@ -5,6 +5,8 @@ from xml.sax.saxutils import escape
 import pdfplumber
 import pytesseract
 from PIL import Image
+from .email_utils import send_verification_email, send_coverage_gap_email
+
 from django.conf import settings
 print("GEMINI KEY LOADED:", settings.GEMINI_API_KEY)
 
@@ -115,7 +117,7 @@ def index(request):
 def upload_policy(request):
     if request.method == 'POST':
         f = request.FILES.get('policy_file')
-        expiry_date = request.POST.get('expiry_date') or None  # ADD THIS
+        expiry_date = request.POST.get('expiry_date') or None
 
         if not f:
             return render(request, 'analyzer/upload.html', {'error': 'No file uploaded'})
@@ -128,7 +130,7 @@ def upload_policy(request):
             name=f.name,
             file=f,
             extracted_text=text,
-            expiry_date=expiry_date,  # ADD THIS
+            expiry_date=expiry_date,
         )
 
         analysis = decode_policy(text)
@@ -137,11 +139,15 @@ def upload_policy(request):
             doc.health_score = analysis.get('health_score', 50)
             doc.save()
 
-        return redirect('policy_dashboard', pk=doc.pk)
+        # Send verification email
+        try:
+            send_verification_email(request.user, doc)  # FIXED: 'document' → 'doc'
+        except Exception as e:
+            print(f"Email error: {e}")
+
+        return redirect('policy_dashboard', pk=doc.pk)  # FIXED: removed the dead redirect above this
 
     return render(request, 'analyzer/upload.html')
-
-
 def policy_dashboard(request, pk):
     doc = get_object_or_404(PolicyDocument, pk=pk)
     return render(request, 'analyzer/dashboard.html', {'doc': doc})
@@ -374,6 +380,16 @@ def coverage_gap(request):
         
         from .ml.ai_engine import analyze_coverage_gap
         result = analyze_coverage_gap(all_text, str(profile))
+        try:
+            send_coverage_gap_email(request.user, str(result))
+        except Exception as e:
+            print(f"Email error: {e}")
+        
+        return render(request, 'analyzer/coverage_gap_result.html', {
+            'result': result,
+            'docs': user_docs,
+        })
+
         
         return render(request, 'analyzer/coverage_gap_result.html', {
             'result': result,
