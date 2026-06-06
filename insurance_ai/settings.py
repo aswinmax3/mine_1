@@ -43,8 +43,12 @@ SECRET_KEY = 'django-insecure-ud$lucdckk+*76y6s5&u(y84m_xzq2zq+73eglokz6^lo#so&=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver']
 
+ALLOWED_HOSTS = [
+    "policy-decode-ai.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
