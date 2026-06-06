@@ -1,43 +1,339 @@
 {% extends 'analyzer/base.html' %}
 {% block title %}Upload Policy{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto">
-  <h1 class="text-3xl font-bold mb-6">📄 Upload Insurance Policy</h1>
-  {% if error %}<div class="bg-red-100 text-red-700 p-4 rounded-xl mb-4">{{error}}</div>{% endif %}
-  <div class="card">
-    <form method="post" enctype="multipart/form-data">
+
+<style>
+  .download-loader-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom, #1a3379, #0f172a, #000);
+    color: white;
+  }
+
+  .download-loader-box {
+    width: 520px;
+    max-width: 90%;
+    font-family: monospace;
+  }
+
+  .loader-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .chevrons {
+    width: 40px;
+    height: 55px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chevron {
+    position: absolute;
+    left: 8px;
+    font-size: 34px;
+    color: #38bdf8;
+    animation: arrowMove 1.5s ease-in-out infinite;
+  }
+
+  .chevron.second {
+    animation-delay: .3s;
+    opacity: .5;
+  }
+
+  @keyframes arrowMove {
+    0%,100% {
+      transform: translateY(0);
+      opacity: .5;
+    }
+
+    50% {
+      transform: translateY(14px);
+      opacity: 1;
+    }
+  }
+
+  .status-box {
+    background: white;
+    color: black;
+    padding: 8px 18px;
+    font-weight: bold;
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+    min-width: 180px;
+  }
+
+  .thick-line {
+    width: 100%;
+    height: 5px;
+    background: white;
+    border-radius: 20px;
+    margin: 14px 0;
+  }
+
+  .loader-labels,
+  .loader-values {
+    display: grid;
+    grid-template-columns: 140px 140px 140px;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .loader-labels {
+    font-size: 12px;
+    opacity: .9;
+    margin-bottom: 8px;
+  }
+
+  .progress-track {
+    height: 12px;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding: 2px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: white;
+    border-radius: 20px;
+    transition: width .2s linear;
+  }
+
+  .small-line {
+    margin-top: 22px;
+    width: 75%;
+    height: 3px;
+    background: #38bdf8;
+    border-radius: 20px;
+  }
+
+  .upload-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .upload-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .upload-card {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    padding: 2rem;
+  }
+
+  .drop-zone {
+    border: 2px dashed #93c5fd;
+    border-radius: 1rem;
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: .25s;
+  }
+
+  .drop-zone:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  .drop-zone.dragging {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  .file-name {
+    text-align: center;
+    color: #16a34a;
+    font-weight: 700;
+    margin: 1rem 0;
+    display: none;
+  }
+
+  .form-control {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: .8rem;
+    padding: .8rem 1rem;
+    margin-top: .4rem;
+  }
+</style>
+
+<div id="download-loader" class="download-loader-overlay">
+  <div class="download-loader-box">
+    <div class="loader-top">
+      <div class="chevrons">
+        <div class="chevron">⌄</div>
+        <div class="chevron second">⌄</div>
+      </div>
+
+      <div class="status-box">
+        <span id="loader-status">ANALYZING...</span>
+      </div>
+    </div>
+
+    <div class="thick-line"></div>
+
+    <div class="loader-labels">
+      <div>PROGRESS</div>
+      <div>EST. TIME</div>
+      <div>FILES READ:</div>
+    </div>
+
+    <div class="loader-values">
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+
+      <div id="time-left">2min 34sec</div>
+      <div id="files-count">0</div>
+    </div>
+
+    <div class="small-line"></div>
+  </div>
+</div>
+
+<div class="upload-wrap">
+  <h1 class="upload-title">📄 Upload Insurance Policy</h1>
+
+  {% if error %}
+    <div class="bg-red-100 text-red-700 p-4 rounded-xl mb-4">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <div class="upload-card">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
       {% csrf_token %}
-      <div id="drop-zone" class="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 transition mb-6">
+
+      <div id="drop-zone" class="drop-zone">
         <div class="text-5xl mb-4">☁️</div>
-        <p class="text-lg text-gray-600">Drag & drop PDF or image here</p>
-        <p class="text-sm text-gray-400 mt-2">Supports PDF, PNG, JPG</p>
-        <input type="file" name="policy_file" id="file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg">
-        <button type="button" onclick="document.getElementById('file-input').click()" class="btn-primary mt-4">Browse File</button>
+
+        <p class="text-lg text-gray-600">
+          Drag & drop PDF or image here
+        </p>
+
+        <p class="text-sm text-gray-400 mt-2">
+          Supports PDF, PNG, JPG
+        </p>
+
+        <input
+          type="file"
+          name="policy_file"
+          id="file-input"
+          class="hidden"
+          accept=".pdf,.png,.jpg,.jpeg"
+          required
+        >
+
+        <button
+          type="button"
+          onclick="document.getElementById('file-input').click()"
+          class="btn-primary mt-4">
+          Browse File
+        </button>
       </div>
-      <div id="file-name" class="text-center text-gray-600 mb-4 hidden"></div>
-      <div>
-        <label>Policy Expiry Date (optional)</label>
-        <input type="date" name="expiry_date" class="form-control">
+
+      <div id="file-name" class="file-name"></div>
+
+      <div class="mb-4 mt-6">
+        <label class="font-semibold">
+          Policy Expiry Date (optional)
+        </label>
+
+        <input
+          type="date"
+          name="expiry_date"
+          class="form-control">
       </div>
-      <button type="submit" class="btn-primary w-full text-lg">🔍 Analyze with AI</button>
+
+      <button type="submit" class="btn-primary w-full text-lg">
+        🔍 Analyze with AI
+      </button>
     </form>
   </div>
 </div>
+
 <script>
   const dz = document.getElementById('drop-zone');
   const fi = document.getElementById('file-input');
-  fi.onchange = () => {
-    document.getElementById('file-name').textContent = '📎 ' + fi.files[0].name;
-    document.getElementById('file-name').classList.remove('hidden');
-  };
-  dz.ondragover = e => { e.preventDefault(); dz.classList.add('border-blue-500','bg-blue-50'); };
-  dz.ondragleave = () => dz.classList.remove('border-blue-500','bg-blue-50');
-  dz.ondrop = e => {
-    e.preventDefault();
-    fi.files = e.dataTransfer.files;
-    fi.onchange();
-    dz.classList.remove('border-blue-500','bg-blue-50');
-  };
-</script>
-{% endblock %}
+  const form = document.getElementById('upload-form');
 
+  const loader = document.getElementById('download-loader');
+  const progressFill = document.getElementById('progress-fill');
+  const timeLeft = document.getElementById('time-left');
+  const filesCount = document.getElementById('files-count');
+  const fileName = document.getElementById('file-name');
+
+  fi.addEventListener('change', () => {
+    if (fi.files.length > 0) {
+      fileName.textContent = '📎 Selected: ' + fi.files[0].name;
+      fileName.style.display = 'block';
+    }
+  });
+
+  dz.addEventListener('dragover', e => {
+    e.preventDefault();
+    dz.classList.add('dragging');
+  });
+
+  dz.addEventListener('dragleave', () => {
+    dz.classList.remove('dragging');
+  });
+
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+
+    if (e.dataTransfer.files.length > 0) {
+      fi.files = e.dataTransfer.files;
+      fileName.textContent = '📎 Selected: ' + fi.files[0].name;
+      fileName.style.display = 'block';
+    }
+
+    dz.classList.remove('dragging');
+  });
+
+  form.addEventListener('submit', function (e) {
+    if (!fi.files.length) {
+      e.preventDefault();
+      alert('Please select a PDF or image first.');
+      return;
+    }
+
+    loader.style.display = 'flex';
+
+    let progress = 0;
+
+    const interval = setInterval(() => {
+      progress++;
+
+      if (progress <= 95) {
+        progressFill.style.width = progress + '%';
+        filesCount.textContent = progress;
+
+        const secondsLeft = Math.max(
+          0,
+          154 - Math.floor((progress / 100) * 154)
+        );
+
+        const min = Math.floor(secondsLeft / 60);
+        const sec = String(secondsLeft % 60).padStart(2, '0');
+
+        timeLeft.textContent = min + 'min ' + sec + 'sec';
+      } else {
+        clearInterval(interval);
+      }
+    }, 80);
+  });
+</script>
+
+{% endblock %}

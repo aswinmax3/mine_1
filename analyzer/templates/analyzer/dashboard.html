@@ -1,102 +1,318 @@
 {% extends 'analyzer/base.html' %}
 {% block title %}{{doc.name}} — Analysis{% endblock %}
-{% block content %}
-<div class="flex items-center gap-3 mb-6">
-  <h1 class="text-3xl font-bold">📊 {{doc.name}}</h1>
-  <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">{{doc.ai_analysis.policy_type|default:"Policy"}}</span>
-</div>
 
-{% with a=doc.ai_analysis %}
-{% if a %}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-  <div class="card text-center">
-    <div class="text-6xl font-bold {% if doc.health_score >= 70 %}text-green-500{% elif doc.health_score >= 40 %}text-yellow-500{% else %}text-red-500{% endif %}">{{doc.health_score}}</div>
-    <div class="text-gray-500 mt-1">Health Score / 100</div>
-    <div class="text-sm text-gray-400 mt-2">{{a.health_reason}}</div>
-  </div>
-  <div class="card md:col-span-2">
-    <h3 class="font-bold text-lg mb-2">📝 Plain English Summary</h3>
-    <p class="text-gray-700">{{a.summary}}</p>
-    {% if a.key_numbers %}
-    <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
-      {% for k,v in a.key_numbers.items %}
-        <div><span class="text-gray-400">{{k|title}}: </span><span class="font-semibold">{{v|default:"N/A"}}</span></div>
-      {% endfor %}
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+  body { background:#020617 !important; }
+
+  .analysis-page {
+    position: relative;
+    margin: -2rem calc(-50vw + 50%);
+    min-height: 100vh;
+    background: #020617;
+    color: white;
+    overflow: hidden;
+    padding: 55px 24px;
+  }
+
+  #shader-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .analysis-wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: auto;
+  }
+
+  .glass-card {
+    background: rgba(15,23,42,.72);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 26px;
+    padding: 28px;
+    backdrop-filter: blur(22px);
+    box-shadow: 0 25px 80px rgba(0,0,0,.45);
+  }
+
+  .page-title {
+    font-size: clamp(32px, 4vw, 54px);
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .badge {
+    background: rgba(59,130,246,.22);
+    color: #bfdbfe;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .score {
+    font-size: 82px;
+    font-weight: 900;
+  }
+
+  .muted { color: rgba(255,255,255,.65); }
+  .text-soft { color: rgba(255,255,255,.82); }
+
+  .action-btn {
+    color: white;
+    padding: 14px 22px;
+    border-radius: 16px;
+    font-weight: 800;
+    display: inline-block;
+    transition: .25s;
+  }
+
+  .action-btn:hover { transform: translateY(-3px); }
+
+  input[type="date"] {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    color: white;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+</style>
+
+<canvas id="shader-bg"></canvas>
+
+<div class="analysis-page">
+  <div class="analysis-wrap">
+
+    <div class="flex items-center justify-between gap-4 mb-8 flex-wrap">
+      <h1 class="page-title">📊 {{doc.name}}</h1>
+      <span class="badge">{{doc.ai_analysis.policy_type|default:"Policy"}}</span>
+    </div>
+
+    {% with a=doc.ai_analysis %}
+    {% if a %}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="glass-card text-center">
+        <div class="score {% if doc.health_score >= 70 %}text-green-400{% elif doc.health_score >= 40 %}text-yellow-400{% else %}text-red-400{% endif %}">
+          {{doc.health_score}}
+        </div>
+        <div class="muted text-lg">Health Score / 100</div>
+        <div class="text-sm muted mt-3">{{a.health_reason}}</div>
+      </div>
+
+      <div class="glass-card md:col-span-2">
+        <h3 class="font-bold text-2xl mb-4">📝 Plain English Summary</h3>
+        <p class="text-soft text-lg leading-relaxed">{{a.summary}}</p>
+
+        {% if a.key_numbers %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-sm">
+          {% for k,v in a.key_numbers.items %}
+            <div>
+              <span class="muted">{{k|title}}: </span>
+              <span class="font-semibold text-white">{{v|default:"N/A"}}</span>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="glass-card">
+        <h3 class="font-bold text-xl mb-4 text-green-400">✅ What's Covered</h3>
+        <ul class="space-y-3">
+          {% for item in a.covered %}
+          <li class="flex gap-2 text-soft"><span class="text-green-400">•</span>{{item}}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="glass-card">
+        <h3 class="font-bold text-xl mb-4 text-red-400">❌ Exclusions</h3>
+        <ul class="space-y-3">
+          {% for item in a.exclusions %}
+          <li class="flex gap-2 text-soft"><span class="text-red-400">•</span>{{item}}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="glass-card border-l-4 border-red-500">
+        <h3 class="font-bold text-xl mb-4 text-red-400">🚨 Red Flags</h3>
+        <ul class="space-y-3">
+          {% for item in a.red_flags %}
+          <li class="text-red-200 flex gap-2"><span>⚠️</span>{{item}}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="glass-card border-l-4 border-yellow-500">
+        <h3 class="font-bold text-xl mb-4 text-yellow-400">🕵️ Hidden Traps</h3>
+        <ul class="space-y-3">
+          {% for item in a.hidden_traps %}
+          <li class="text-yellow-100 flex gap-2"><span>⚠️</span>{{item}}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="glass-card mb-6">
+      <h3 class="font-bold text-xl mb-4">❓ Questions to Ask Your Insurer</h3>
+      <ol class="list-decimal list-inside space-y-2 text-soft">
+        {% for q in a.recommended_questions %}
+        <li>{{q}}</li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="flex gap-4 flex-wrap mb-6">
+      <a href="{% url 'download_policy_pdf' doc.pk %}" class="action-btn bg-slate-800 hover:bg-slate-900">⬇️ Download PDF</a>
+      <a href="/policy/{{doc.pk}}/chat/" class="action-btn bg-blue-600 hover:bg-blue-700">💬 Ask Questions</a>
+      <a href="/policy/{{doc.pk}}/claim/" class="action-btn bg-purple-600 hover:bg-purple-700">📋 Check a Claim</a>
+      <a href="/policy/{{doc.pk}}/negotiate/" class="action-btn bg-green-600 hover:bg-green-700">💰 Negotiation Tips</a>
+      <a href="{% url 'complaint_letter' doc.pk %}" class="action-btn bg-orange-600 hover:bg-orange-700">✉️ Complaint Letter</a>
+      <a href="/compare/" class="action-btn bg-gray-600 hover:bg-gray-700">⚖️ Compare Policies</a>
+    </div>
+
+    <div class="glass-card mt-6">
+      <h3 class="font-bold text-xl mb-4">📅 Policy Expiry Date</h3>
+
+      {% if doc.expiry_date %}
+        <p class="text-soft mb-3">
+          Expires on: <strong>{{ doc.expiry_date }}</strong>
+          {% with days_left=doc.expiry_date|timeuntil %}
+          <span class="ml-2 text-sm {% if doc.expiry_date < today %}text-red-400 font-bold{% else %}text-green-400{% endif %}">
+            ({{ days_left }} remaining)
+          </span>
+          {% endwith %}
+        </p>
+      {% else %}
+        <p class="muted mb-3">No expiry date set.</p>
+      {% endif %}
+
+      <form method="post" action="{% url 'set_expiry' doc.pk %}">
+        {% csrf_token %}
+        <div class="flex gap-3 items-center flex-wrap">
+          <input type="date" name="expiry_date"
+                 value="{{ doc.expiry_date|default:'' }}"
+                 class="rounded-lg px-3 py-2 text-sm">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+            Save Expiry Date
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {% else %}
+    <div class="glass-card text-center py-12">
+      <div class="text-5xl mb-4">⚠️</div>
+      <p class="muted">AI analysis not available. Check your Gemini API key.</p>
     </div>
     {% endif %}
+    {% endwith %}
+
   </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <div class="card">
-    <h3 class="font-bold text-lg mb-3 text-green-600">✅ What's Covered</h3>
-    <ul class="space-y-2">{% for item in a.covered %}<li class="flex gap-2"><span class="text-green-500">•</span>{{item}}</li>{% endfor %}</ul>
-  </div>
-  <div class="card">
-    <h3 class="font-bold text-lg mb-3 text-red-600">❌ Exclusions</h3>
-    <ul class="space-y-2">{% for item in a.exclusions %}<li class="flex gap-2"><span class="text-red-500">•</span>{{item}}</li>{% endfor %}</ul>
-  </div>
-</div>
+<script>
+(function () {
+  const canvas = document.getElementById("shader-bg");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <div class="card border-l-4 border-red-500">
-    <h3 class="font-bold text-lg mb-3 text-red-600">🚨 Red Flags</h3>
-    <ul class="space-y-2">{% for item in a.red_flags %}<li class="text-red-700 flex gap-2"><span>⚠️</span>{{item}}</li>{% endfor %}</ul>
-  </div>
-  <div class="card border-l-4 border-yellow-500">
-    <h3 class="font-bold text-lg mb-3 text-yellow-600">🕵️ Hidden Traps</h3>
-    <ul class="space-y-2">{% for item in a.hidden_traps %}<li class="text-yellow-700 flex gap-2"><span>⚠️</span>{{item}}</li>{% endfor %}</ul>
-  </div>
-</div>
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      iTime: { value: 0 },
+      iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+    },
+    vertexShader: `
+      void main() {
+        gl_Position = vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float iTime;
+      uniform vec2 iResolution;
 
-<div class="card mb-6">
-  <h3 class="font-bold text-lg mb-3">❓ Questions to Ask Your Insurer</h3>
-  <ol class="list-decimal list-inside space-y-2 text-gray-700">{% for q in a.recommended_questions %}<li>{{q}}</li>{% endfor %}</ol>
-</div>
+      float rand(vec2 n) {
+        return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+      }
 
-<div class="flex gap-4 flex-wrap">
-  <a href="{% url 'download_policy_pdf' doc.pk %}" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-slate-900 transition inline-block">⬇️ Download PDF</a>
-  <a href="/policy/{{doc.pk}}/chat/" class="btn-primary">💬 Ask Questions</a>
-  <a href="/policy/{{doc.pk}}/claim/" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition inline-block">📋 Check a Claim</a>
-  <a href="/policy/{{doc.pk}}/negotiate/" class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition inline-block">💰 Negotiation Tips</a>
-  <a href="{% url 'complaint_letter' doc.pk %}" class="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-700 transition inline-block">✉️ Complaint Letter</a>
-  <a href="/compare/" class="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition inline-block">⚖️ Compare Policies</a>
-</div>
+      float noise(vec2 p) {
+        vec2 ip = floor(p);
+        vec2 u = fract(p);
+        u = u*u*(3.0-2.0*u);
+        float res = mix(
+          mix(rand(ip), rand(ip + vec2(1.0, 0.0)), u.x),
+          mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x),
+          u.y
+        );
+        return res * res;
+      }
 
-<!-- Expiry Date -->
-<div class="card mt-6">
-  <h3 class="font-bold text-lg mb-3">📅 Policy Expiry Date</h3>
-  {% if doc.expiry_date %}
-    <p class="text-gray-700 mb-3">
-      Expires on: <strong>{{ doc.expiry_date }}</strong>
-      {% with days_left=doc.expiry_date|timeuntil %}
-        <span class="ml-2 text-sm
-          {% if doc.expiry_date < today %}text-red-600 font-bold
-          {% else %}text-green-600{% endif %}">
-          ({{ days_left }} remaining)
-        </span>
-      {% endwith %}
-    </p>
-  {% else %}
-    <p class="text-gray-400 mb-3">No expiry date set.</p>
-  {% endif %}
-  <form method="post" action="{% url 'set_expiry' doc.pk %}">
-    {% csrf_token %}
-    <div class="flex gap-3 items-center flex-wrap">
-      <input type="date" name="expiry_date"
-             value="{{ doc.expiry_date|default:'' }}"
-             class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-        Save Expiry Date
-      </button>
-    </div>
-  </form>
-</div>
-{% else %}
-<div class="card text-center py-12">
-  <div class="text-5xl mb-4">⚠️</div>
-  <p class="text-gray-500">AI analysis not available. Check your Gemini API key.</p>
-</div>
-{% endif %}
-{% endwith %}
+      float fbm(vec2 x) {
+        float v = 0.0;
+        float a = 0.35;
+        vec2 shift = vec2(100);
+        mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+        for (int i = 0; i < 3; ++i) {
+          v += a * noise(x);
+          x = rot * x * 2.0 + shift;
+          a *= 0.45;
+        }
+        return v;
+      }
+
+      void main() {
+        vec2 p = (gl_FragCoord.xy - iResolution.xy * 0.5) / iResolution.y;
+        vec4 o = vec4(0.0);
+
+        for (float i = 0.0; i < 34.0; i++) {
+          vec2 v = p * mat2(6.0, -4.0, 4.0, 6.0)
+            + cos(i * i + iTime * 0.8 + i * vec2(13.0, 11.0)) * 3.5;
+
+          float tail = fbm(v + vec2(iTime * 0.6, i)) * 0.35;
+
+          vec4 c = vec4(
+            0.1 + 0.25 * sin(i * 0.2 + iTime),
+            0.35 + 0.45 * cos(i * 0.3 + iTime),
+            0.75 + 0.25 * sin(i * 0.4 + iTime),
+            1.0
+          );
+
+          o += c * exp(sin(i * i + iTime)) / length(max(v, vec2(v.x * 0.04, v.y * 1.6))) * (0.15 + tail);
+        }
+
+        o = tanh(pow(o / 85.0, vec4(1.6)));
+        gl_FragColor = vec4(o.rgb * 1.6, 1.0);
+      }
+    `
+  });
+
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  scene.add(mesh);
+
+  function resize() {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight);
+  }
+
+  function animate() {
+    material.uniforms.iTime.value += 0.016;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+  animate();
+})();
+</script>
 {% endblock %}

@@ -2,87 +2,203 @@
 {% block title %}Premium Calculator — InsureAI{% endblock %}
 
 {% block content %}
-<div style="max-width:600px; margin:0 auto;">
-  <h2 style="margin-bottom:0.5rem;">Premium Calculator</h2>
-  <p style="color:#888; margin-bottom:2rem;">
-    Get an estimated premium range before buying any policy.
-  </p>
 
-  <form method="post">
-    {% csrf_token %}
+<style>
+  html,
+  body {
+    background: #03030a !important;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>Age</label>
-      <input type="number" name="age" class="form-control" placeholder="e.g. 30" required>
-    </div>
+  .premium-page {
+    width: 100vw;
+    min-height: calc(100vh - 72px);
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -24px;
+    padding: 60px 20px;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.18), transparent 30%),
+      radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.24), transparent 32%),
+      radial-gradient(circle at 50% 90%, rgba(37, 99, 235, 0.14), transparent 35%),
+      linear-gradient(135deg, #03030a, #070715 45%, #10051f);
+    color: #ffffff;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>Gender</label>
-      <select name="gender" class="form-control">
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
-    </div>
+  .premium-card {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 36px;
+    border-radius: 30px;
+    background: rgba(8, 8, 20, 0.78);
+    border: 1px solid rgba(147, 197, 253, 0.24);
+    box-shadow:
+      0 35px 100px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(18px);
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>Smoker?</label>
-      <select name="smoker" class="form-control">
-        <option value="no">No</option>
-        <option value="yes">Yes</option>
-      </select>
-    </div>
+  .premium-card h2 {
+    margin: 0 0 8px;
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(90deg, #ffffff, #93c5fd, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>BMI (optional)</label>
-      <input type="number" step="0.1" name="bmi" class="form-control" placeholder="e.g. 24.5">
-    </div>
+  .premium-card p {
+    color: #94a3b8;
+    margin-bottom: 2rem;
+    font-size: 16px;
+    line-height: 1.6;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>Policy Type</label>
-      <select name="policy_type" class="form-control">
-        <option value="Health Insurance">Health Insurance</option>
-        <option value="Term Life Insurance">Term Life Insurance</option>
-        <option value="Vehicle Insurance">Vehicle Insurance</option>
-        <option value="Home Insurance">Home Insurance</option>
-        <option value="Travel Insurance">Travel Insurance</option>
-        <option value="Critical Illness">Critical Illness</option>
-      </select>
-    </div>
+  .form-group {
+    margin-bottom: 1rem;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>Coverage Amount (₹)</label>
-      <select name="coverage_amount" class="form-control">
-        <option value="500000">₹5 Lakh</option>
-        <option value="1000000">₹10 Lakh</option>
-        <option value="2000000" selected>₹20 Lakh</option>
-        <option value="5000000">₹50 Lakh</option>
-        <option value="10000000">₹1 Crore</option>
-      </select>
-    </div>
+  .form-group label {
+    display: block;
+    color: #e2e8f0;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
 
-    <div style="margin-bottom:1rem;">
-      <label>City Tier</label>
-      <select name="city_tier" class="form-control">
-        <option value="Tier 1 (Metro - Mumbai/Delhi/Bangalore)">Tier 1 — Metro</option>
-        <option value="Tier 2 (Pune/Kochi/Jaipur)">Tier 2 — Mid City</option>
-        <option value="Tier 3 (Small city/Town)">Tier 3 — Small City/Town</option>
-      </select>
-    </div>
+  .form-control {
+    width: 100%;
+    height: 52px;
+    padding: 0 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(147, 197, 253, 0.25);
+    background: rgba(3, 7, 18, 0.75);
+    color: #ffffff;
+    outline: none;
+    font-size: 15px;
+  }
 
-    <div style="margin-bottom:1.5rem;">
-      <label>Family Size</label>
-      <select name="family_size" class="form-control">
-        <option value="1">Just Me</option>
-        <option value="2">2 (Self + Spouse)</option>
-        <option value="3">3 Members</option>
-        <option value="4">4 Members</option>
-        <option value="5">5+ Members</option>
-      </select>
-    </div>
+  .form-control::placeholder {
+    color: #64748b;
+  }
 
-    <button type="submit" class="btn-primary" style="width:100%;">
-      Calculate Premium Estimate
-    </button>
-  </form>
+  .form-control:focus {
+    border-color: rgba(147, 197, 253, 0.7);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+  }
+
+  .form-control option {
+    background: #0f172a;
+    color: #ffffff;
+  }
+
+  .btn-premium {
+    width: 100%;
+    height: 58px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed, #9333ea);
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow:
+      0 18px 45px rgba(59, 130, 246, 0.3),
+      inset 0 0 18px rgba(255, 255, 255, 0.1);
+    transition: 0.25s ease;
+  }
+
+  .btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 24px 60px rgba(124, 58, 237, 0.42),
+      inset 0 0 18px rgba(255, 255, 255, 0.14);
+  }
+</style>
+
+<div class="premium-page">
+  <div class="premium-card">
+    <h2>Premium Calculator</h2>
+    <p>
+      Get an estimated premium range before buying any policy.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" name="age" class="form-control" placeholder="e.g. 30" required>
+      </div>
+
+      <div class="form-group">
+        <label>Gender</label>
+        <select name="gender" class="form-control">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Smoker?</label>
+        <select name="smoker" class="form-control">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>BMI (optional)</label>
+        <input type="number" step="0.1" name="bmi" class="form-control" placeholder="e.g. 24.5">
+      </div>
+
+      <div class="form-group">
+        <label>Policy Type</label>
+        <select name="policy_type" class="form-control">
+          <option value="Health Insurance">Health Insurance</option>
+          <option value="Term Life Insurance">Term Life Insurance</option>
+          <option value="Vehicle Insurance">Vehicle Insurance</option>
+          <option value="Home Insurance">Home Insurance</option>
+          <option value="Travel Insurance">Travel Insurance</option>
+          <option value="Critical Illness">Critical Illness</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Coverage Amount (₹)</label>
+        <select name="coverage_amount" class="form-control">
+          <option value="500000">₹5 Lakh</option>
+          <option value="1000000">₹10 Lakh</option>
+          <option value="2000000" selected>₹20 Lakh</option>
+          <option value="5000000">₹50 Lakh</option>
+          <option value="10000000">₹1 Crore</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>City Tier</label>
+        <select name="city_tier" class="form-control">
+          <option value="Tier 1 (Metro - Mumbai/Delhi/Bangalore)">Tier 1 — Metro</option>
+          <option value="Tier 2 (Pune/Kochi/Jaipur)">Tier 2 — Mid City</option>
+          <option value="Tier 3 (Small city/Town)">Tier 3 — Small City/Town</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label>Family Size</label>
+        <select name="family_size" class="form-control">
+          <option value="1">Just Me</option>
+          <option value="2">2 (Self + Spouse)</option>
+          <option value="3">3 Members</option>
+          <option value="4">4 Members</option>
+          <option value="5">5+ Members</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-premium">
+        Calculate Premium Estimate
+      </button>
+    </form>
+  </div>
 </div>
+
 {% endblock %}

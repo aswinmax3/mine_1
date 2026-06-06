@@ -20,9 +20,17 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
+GROQ_API_KEY = (os.getenv("GROQ_API_KEY") or "").strip()
+OPENROUTER_API_KEY = (os.getenv("OPENROUTER_API_KEY") or "").strip()
+GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "gemini-2.0-flash").strip()
+GROQ_MODEL = (os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
+OPENROUTER_MODEL = (os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+AI_PROVIDER_ORDER = [
+    provider.strip().lower()
+    for provider in (os.getenv("AI_PROVIDER_ORDER") or "gemini,groq,openrouter").split(",")
+    if provider.strip()
+]
 
 
 
@@ -162,3 +170,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kumar7shankar@gmail.com'      # your Gmail
 EMAIL_HOST_PASSWORD = 'zxfx olhg fmvd adib'      # Gmail App Password (NOT your login password)
 DEFAULT_FROM_EMAIL = 'InsureAI <aswinmax3@gmail.com>'
+
+# ✅ Twilio settings
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_WHATSAPP_FROM = os.getenv('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886')
+
+LOGIN_URL = 'login'

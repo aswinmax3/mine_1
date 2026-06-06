@@ -1,62 +1,278 @@
 {% extends 'analyzer/base.html' %}
 {% block title %}InsureAI — Smart Policy Decoder{% endblock %}
+
 {% block content %}
-<div class="text-center py-12">
-  <h1 class="text-5xl font-bold text-gray-800 mb-4">🔍 Decode Any Insurance Policy</h1>
-  <p class="text-xl text-gray-500 mb-8">AI-powered analysis — uncover hidden clauses, compare plans, estimate claims</p>
-  <div class="flex gap-4 justify-center flex-wrap">
-    <a href="/upload/" class="btn-primary text-lg inline-block">📄 Upload Policy</a>
-    <a href="/compare/" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition text-lg inline-block">⚖️ Compare Policies</a>
-    <a href="/recommend/" class="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition text-lg inline-block">✨ Get Recommendations</a>
+<script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.22/build/spline-viewer.js"></script>
 
-    <a href="{% url 'coverage_gap' %}" class="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-700 transition text-lg inline-block">🔍 Coverage Gap</a>
-<a href="{% url 'premium_calculator' %}" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition text-lg inline-block">🧮 Premium Calc</a>
-<a href="{% url 'multi_policy_chat' %}" class="bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-teal-700 transition text-lg inline-block">💬 All Policies Chat</a>
-  </div>
+<style>
+  html,
+  body {
+    background: #050816 !important;
+    overflow-x: hidden;
+  }
+
+  .dashboard-page {
+    min-height: calc(100vh - 72px);
+    margin: -2rem calc(-50vw + 50%);
+    background: #050816;
+    color: white;
+  }
+
+  .robot-hero {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 72px);
+    min-height: 760px;
+    overflow: hidden;
+    background: #050816;
+  }
+
+  spline-viewer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      radial-gradient(circle at 50% 55%, rgba(124,58,237,0.22), transparent 28%),
+      linear-gradient(
+        90deg,
+        rgba(5,8,22,0.90),
+        rgba(5,8,22,0.25),
+        rgba(5,8,22,0.90)
+      );
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 4;
+    height: 100%;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 90px 24px 40px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .hero-title {
+    font-size: clamp(42px, 6vw, 78px);
+    font-weight: 900;
+    line-height: 1.08;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,0,0,0.85);
+    margin-bottom: 18px;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(18px, 2vw, 25px);
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 34px;
+    text-shadow: 0 0 25px rgba(0,0,0,0.8);
+  }
+
+  .hero-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    pointer-events: auto;
+  }
+
+  .hero-btn {
+    color: white;
+    padding: 15px 26px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 17px;
+    display: inline-block;
+    text-decoration: none;
+    box-shadow: 0 16px 45px rgba(0,0,0,0.38);
+    transition: 0.25s;
+  }
+
+  .hero-btn:hover {
+    transform: translateY(-4px);
+  }
+
+  .lower-section {
+    background: #050816;
+    padding: 55px 24px 80px;
+  }
+
+  .lower-container {
+    max-width: 1250px;
+    margin: 0 auto;
+  }
+
+  .dark-feature-card {
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: white;
+    border-radius: 22px;
+    padding: 30px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.35);
+  }
+
+  .dark-feature-card p {
+    color: rgba(255,255,255,0.68);
+  }
+
+  .recent-title {
+    color: white;
+  }
+
+  .policy-card-dark {
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: white;
+    border-radius: 20px;
+    padding: 22px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+  }
+
+  .policy-card-dark a {
+    color: white;
+    text-decoration: none;
+  }
+
+  .policy-date {
+    color: rgba(255,255,255,0.55);
+  }
+
+  @media(max-width: 768px) {
+    .robot-hero {
+      min-height: 820px;
+    }
+
+    .hero-content {
+      padding-top: 60px;
+    }
+
+    .hero-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="dashboard-page">
+
+  <section class="robot-hero">
+
+    <spline-viewer
+      url="https://prod.spline.design/PyzDhpQ9E5f1E3MT/scene.splinecode">
+    </spline-viewer>
+
+    <div class="hero-overlay"></div>
+
+ <div class="hero-content">
+
+ <div class="hero-buttons" style="margin-top:420px;">
+
+    <a href="{% url 'enter_project' %}"
+       class="hero-btn bg-cyan-500 hover:bg-cyan-600">
+        🤖 AI Robot
+    </a>
+
+    <a href="/upload/" class="hero-btn bg-blue-600 hover:bg-blue-700">
+        📄 Upload Policy
+    </a>
+
+    <a href="/compare/" class="hero-btn bg-purple-600 hover:bg-purple-700">
+        ⚖️ Compare Policies
+    </a>
+
+    <a href="/recommend/" class="hero-btn bg-green-600 hover:bg-green-700">
+        ✨ Get Recommendations
+    </a>
+
+    <a href="{% url 'coverage_gap' %}"
+       class="hero-btn bg-orange-600 hover:bg-orange-700">
+        🔍 Coverage Gap
+    </a>
+
+    <a href="{% url 'premium_calculator' %}"
+       class="hero-btn bg-indigo-600 hover:bg-indigo-700">
+        🧮 Premium Calc
+    </a>
+
+    <a href="{% url 'multi_policy_chat' %}"
+       class="hero-btn bg-teal-600 hover:bg-teal-700">
+        💬 All Policies Chat
+    </a>
+
 </div>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-  <div class="card text-center">
-    <div class="text-4xl mb-3">🔍</div>
-    <h3 class="font-bold text-lg mb-2">Hidden Clause Detector</h3>
-    <p class="text-gray-500">AI finds waiting periods, sub-limits, and traps in fine print</p>
-  </div>
-  <div class="card text-center">
-    <div class="text-4xl mb-3">💬</div>
-    <h3 class="font-bold text-lg mb-2">Ask Your Policy</h3>
-    <p class="text-gray-500">Chat with your insurance document in plain English</p>
-  </div>
-  <div class="card text-center">
-    <div class="text-4xl mb-3">📊</div>
-    <h3 class="font-bold text-lg mb-2">Claim Predictor</h3>
-    <p class="text-gray-500">Estimate claim approval probability before you file</p>
-  </div>
-</div>
-
-{% if docs %}
-<h2 class="text-2xl font-bold mt-12 mb-4">Recent Policies</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  {% for doc in docs %}
-  <div class="card hover:shadow-xl transition">
-    <div class="flex items-center justify-between gap-4">
-      <a href="/policy/{{doc.pk}}/" class="flex items-center gap-4 flex-1">
-        <div class="text-3xl">📄</div>
-        <div class="flex-1">
-          <div class="font-semibold">{{doc.name}}</div>
-          <div class="text-sm text-gray-400">{{doc.uploaded_at|date:"M d, Y"}}</div>
-          {% if doc.health_score %}
-            <div class="text-sm font-bold {% if doc.health_score >= 70 %}text-green-600{% elif doc.health_score >= 40 %}text-yellow-600{% else %}text-red-600{% endif %}">Score: {{doc.health_score}}/100</div>
-          {% endif %}
-        </div>
-      </a>
-      <form method="post" action="{% url 'delete_policy' doc.pk %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this policy?');">
-        {% csrf_token %}
-        <button type="submit" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition text-sm" title="Delete policy">🗑️</button>
-      </form>
     </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-{% endblock %}
 
+  </section>
+
+  <section class="lower-section">
+    <div class="lower-container">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="dark-feature-card text-center">
+          <div class="text-4xl mb-3">🔍</div>
+          <h3 class="font-bold text-lg mb-2">Hidden Clause Detector</h3>
+          <p>AI finds waiting periods, sub-limits, and traps in fine print</p>
+        </div>
+
+        <div class="dark-feature-card text-center">
+          <div class="text-4xl mb-3">💬</div>
+          <h3 class="font-bold text-lg mb-2">Ask Your Policy</h3>
+          <p>Chat with your insurance document in plain English</p>
+        </div>
+
+        <div class="dark-feature-card text-center">
+          <div class="text-4xl mb-3">📊</div>
+          <h3 class="font-bold text-lg mb-2">Claim Predictor</h3>
+          <p>Estimate claim approval probability before you file</p>
+        </div>
+      </div>
+
+      {% if user.is_authenticated and docs %}
+      <h2 class="text-2xl font-bold mt-12 mb-4 recent-title">Recent Policies</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for doc in docs %}
+        <div class="policy-card-dark hover:shadow-xl transition">
+          <div class="flex items-center justify-between gap-4">
+            <a href="/policy/{{doc.pk}}/" class="flex items-center gap-4 flex-1">
+              <div class="text-3xl">📄</div>
+
+              <div class="flex-1">
+                <div class="font-semibold">{{doc.name}}</div>
+                <div class="text-sm policy-date">{{doc.uploaded_at|date:"M d, Y"}}</div>
+
+                {% if doc.health_score %}
+                <div class="text-sm font-bold {% if doc.health_score >= 70 %}text-green-400{% elif doc.health_score >= 40 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                  Score: {{doc.health_score}}/100
+                </div>
+                {% endif %}
+              </div>
+            </a>
+
+            <form method="post" action="{% url 'delete_policy' doc.pk %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this policy?');">
+              {% csrf_token %}
+              <button type="submit" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition text-sm" title="Delete policy">
+                🗑️
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+</div>
+{% endblock %}

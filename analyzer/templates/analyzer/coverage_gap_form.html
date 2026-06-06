@@ -1,116 +1,444 @@
 {% extends 'analyzer/base.html' %}
 {% block title %}Coverage Gap Analyzer — InsureAI{% endblock %}
+
 {% block content %}
+<style>
+  body {
+    background: #000 !important;
+  }
 
-<div class="max-w-2xl mx-auto">
+  .gap-page {
+    position: relative;
+    min-height: calc(100vh - 80px);
+    overflow: hidden;
+    background: #000;
+    border-radius: 32px;
+    padding: 50px 20px;
+    color: white;
+  }
 
-  <!-- Header -->
-  <div class="text-center mb-10">
-    <div class="text-6xl mb-4">🔍</div>
-    <h1 class="text-4xl font-bold text-gray-800 mb-3">Coverage Gap Analyzer</h1>
-    <p class="text-gray-500 text-lg">Tell us about yourself — we'll find what's missing in your insurance.</p>
-    {% if docs %}
-    <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-      📄 Analyzing {{ docs.count }} of your uploaded policies
+  #aetherCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .gap-content {
+    position: relative;
+    z-index: 5;
+    max-width: 900px;
+    margin: auto;
+  }
+
+  .gap-title {
+    text-align: center;
+    font-size: clamp(40px, 5vw, 70px);
+    font-weight: 800;
+    background: linear-gradient(to bottom, #fff, #9ca3af);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gap-subtitle {
+    text-align: center;
+    color: rgba(255,255,255,.65);
+    font-size: 18px;
+    margin-top: 12px;
+    margin-bottom: 25px;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(168,85,247,.14);
+    border: 1px solid rgba(168,85,247,.25);
+    color: #e9d5ff;
+  }
+
+  .glass-card {
+    background: rgba(0,0,0,.62);
+    border: 1px solid rgba(168,85,247,.22);
+    border-radius: 28px;
+    padding: 30px;
+    backdrop-filter: blur(22px);
+    box-shadow: 0 30px 100px rgba(0,0,0,.65);
+    margin-bottom: 26px;
+  }
+
+  .section-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .number-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(168,85,247,.22);
+    color: #e9d5ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gap-label {
+    display: block;
+    color: rgba(255,255,255,.75);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .gap-input,
+  .gap-select {
+    width: 100%;
+    background: rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.16);
+    color: white;
+    border-radius: 16px;
+    padding: 15px 16px;
+    outline: none;
+  }
+
+  .gap-select option {
+    color: black;
+  }
+
+  .gap-input:focus,
+  .gap-select:focus {
+    border-color: #c084fc;
+    box-shadow: 0 0 0 3px rgba(168,85,247,.22);
+  }
+
+  .rupee {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,.45);
+    font-weight: 800;
+  }
+
+  .income-input {
+    padding-left: 38px;
+  }
+
+  .choice-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.07);
+    border-radius: 18px;
+    cursor: pointer;
+    transition: .25s;
+  }
+
+  .choice-card:hover {
+    border-color: #c084fc;
+    background: rgba(168,85,247,.13);
+    transform: translateY(-2px);
+  }
+
+  .choice-card input {
+    width: 18px;
+    height: 18px;
+    accent-color: #a855f7;
+  }
+
+  .choice-title {
+    color: white;
+    font-weight: 700;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 20px;
+    padding: 18px;
+    font-size: 18px;
+    font-weight: 900;
+    transition: .25s;
+  }
+
+  .submit-btn:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+  }
+
+  .time-text {
+    text-align: center;
+    color: rgba(255,255,255,.45);
+    margin-top: 14px;
+    font-size: 14px;
+  }
+
+  @media(max-width:768px) {
+    .gap-page {
+      border-radius: 0;
+      padding: 28px 16px;
+    }
+
+    .grid-cols-2 {
+      grid-template-columns: 1fr !important;
+    }
+
+    .col-span-2 {
+      grid-column: span 1 / span 1 !important;
+    }
+
+    .glass-card {
+      padding: 22px;
+    }
+  }
+</style>
+
+<div class="gap-page">
+  <canvas id="aetherCanvas"></canvas>
+
+  <div class="gap-content">
+
+    <div class="text-center mb-10">
+      <div class="text-6xl mb-4">🔍</div>
+      <h1 class="gap-title">Coverage Gap Analyzer</h1>
+      <p class="gap-subtitle">Tell us about yourself — we'll find what's missing in your insurance.</p>
+
+      {% if docs %}
+        <div class="status-pill">
+          📄 Analyzing {{ docs.count }} of your uploaded policies
+        </div>
+      {% else %}
+        <div class="status-pill">
+          ⚠️ No policies uploaded yet — results will be general recommendations
+        </div>
+      {% endif %}
     </div>
-    {% else %}
-    <div class="mt-4 inline-flex items-center gap-2 bg-orange-50 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
-      ⚠️ No policies uploaded yet — results will be general recommendations
-    </div>
-    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="glass-card">
+        <h2 class="section-title">
+          <span class="number-badge">1</span>
+          Personal Information
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="gap-label">Your Age</label>
+            <input type="number" name="age" min="18" max="80" required
+                   placeholder="e.g. 30"
+                   class="gap-input">
+          </div>
+
+          <div>
+            <label class="gap-label">Family Size</label>
+            <select name="family_size" class="gap-select">
+              <option value="1">Just Me</option>
+              <option value="2">2 Members</option>
+              <option value="3">3 Members</option>
+              <option value="4">4 Members</option>
+              <option value="5">5+ Members</option>
+            </select>
+          </div>
+
+          <div class="col-span-2">
+            <label class="gap-label">Annual Income</label>
+            <div class="relative">
+              <span class="rupee">₹</span>
+              <input type="number" name="income" required
+                     placeholder="e.g. 500000"
+                     class="gap-input income-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <h2 class="section-title">
+          <span class="number-badge">2</span>
+          Your Assets
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <label class="choice-card">
+            <input type="hidden" name="has_home" value="no">
+            <input type="checkbox" name="has_home" value="yes">
+            <div>
+              <div class="text-2xl">🏠</div>
+              <div class="choice-title">I own a home</div>
+            </div>
+          </label>
+
+          <label class="choice-card">
+            <input type="hidden" name="has_vehicle" value="no">
+            <input type="checkbox" name="has_vehicle" value="yes">
+            <div>
+              <div class="text-2xl">🚗</div>
+              <div class="choice-title">I own a vehicle</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <h2 class="section-title">
+          <span class="number-badge">3</span>
+          Health Profile
+        </h2>
+
+        <p class="text-sm text-white/60 mb-4">Does anyone in your family have a chronic illness?</p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <label class="choice-card">
+            <input type="radio" name="chronic_illness" value="yes">
+            <span class="choice-title">Yes ❤️‍🩹</span>
+          </label>
+
+          <label class="choice-card">
+            <input type="radio" name="chronic_illness" value="no" checked>
+            <span class="choice-title">No 💪</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        🔍 Analyze My Coverage
+      </button>
+
+      <p class="time-text">Usually takes 10–15 seconds</p>
+    </form>
   </div>
-
-  <form method="post">
-    {% csrf_token %}
-
-    <!-- Personal Info -->
-    <div class="card mb-6">
-      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
-        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-        Personal Information
-      </h2>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Your Age</label>
-          <input type="number" name="age" min="18" max="80" required
-                 placeholder="e.g. 30"
-                 class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Family Size</label>
-          <select name="family_size"
-                  class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <option value="1">Just Me</option>
-            <option value="2">2 Members</option>
-            <option value="3">3 Members</option>
-            <option value="4">4 Members</option>
-            <option value="5">5+ Members</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-          <label class="block text-sm font-medium text-gray-600 mb-1">Annual Income</label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">₹</span>
-            <input type="number" name="income" required
-                   placeholder="e.g. 500000"
-                   class="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assets -->
-    <div class="card mb-6">
-      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
-        <span class="bg-green-100 text-green-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
-        Your Assets
-      </h2>
-      <div class="grid grid-cols-2 gap-4">
-        <label class="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-blue-50 transition has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
-          <input type="hidden" name="has_home" value="no">
-          <input type="checkbox" name="has_home" value="yes" class="w-5 h-5 accent-blue-600">
-          <div>
-            <div class="text-2xl">🏠</div>
-            <div class="font-semibold text-gray-700 text-sm">I own a home</div>
-          </div>
-        </label>
-        <label class="flex items-center gap-4 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-blue-200 hover:bg-blue-50 transition has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
-          <input type="hidden" name="has_vehicle" value="no">
-          <input type="checkbox" name="has_vehicle" value="yes" class="w-5 h-5 accent-blue-600">
-          <div>
-            <div class="text-2xl">🚗</div>
-            <div class="font-semibold text-gray-700 text-sm">I own a vehicle</div>
-          </div>
-        </label>
-      </div>
-    </div>
-
-    <!-- Health -->
-    <div class="card mb-8">
-      <h2 class="font-bold text-gray-700 text-lg mb-5 flex items-center gap-2">
-        <span class="bg-purple-100 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-        Health Profile
-      </h2>
-      <p class="text-sm text-gray-500 mb-3">Does anyone in your family have a chronic illness?</p>
-      <div class="grid grid-cols-2 gap-3">
-        <label class="flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-red-200 hover:bg-red-50 transition has-[:checked]:border-red-400 has-[:checked]:bg-red-50">
-          <input type="radio" name="chronic_illness" value="yes" class="accent-red-500 w-4 h-4">
-          <span class="font-medium text-gray-700">Yes ❤️‍🩹</span>
-        </label>
-        <label class="flex items-center gap-3 p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-green-200 hover:bg-green-50 transition has-[:checked]:border-green-400 has-[:checked]:bg-green-50">
-          <input type="radio" name="chronic_illness" value="no" checked class="accent-green-500 w-4 h-4">
-          <span class="font-medium text-gray-700">No 💪</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Submit -->
-    <button type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-200 flex items-center justify-center gap-3">
-      🔍 Analyze My Coverage
-    </button>
-    <p class="text-center text-sm text-gray-400 mt-3">Usually takes 10–15 seconds</p>
-  </form>
-
 </div>
+
+<script>
+  const canvas = document.getElementById("aetherCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let particles = [];
+  const mouse = { x: null, y: null, radius: 180 };
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    initParticles();
+  }
+
+  class Particle {
+    constructor(x, y, dx, dy, size) {
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.size = size;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(191,128,255,0.85)";
+      ctx.fill();
+    }
+
+    update() {
+      if (this.x > canvas.width || this.x < 0) this.dx = -this.dx;
+      if (this.y > canvas.height || this.y < 0) this.dy = -this.dy;
+
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < mouse.radius + this.size) {
+          const forceX = dx / distance;
+          const forceY = dy / distance;
+          const force = (mouse.radius - distance) / mouse.radius;
+          this.x -= forceX * force * 5;
+          this.y -= forceY * force * 5;
+        }
+      }
+
+      this.x += this.dx;
+      this.y += this.dy;
+      this.draw();
+    }
+  }
+
+  function initParticles() {
+    particles = [];
+    const count = Math.floor((canvas.width * canvas.height) / 9000);
+
+    for (let i = 0; i < count; i++) {
+      particles.push(
+        new Particle(
+          Math.random() * canvas.width,
+          Math.random() * canvas.height,
+          Math.random() * 0.4 - 0.2,
+          Math.random() * 0.4 - 0.2,
+          Math.random() * 2 + 1
+        )
+      );
+    }
+  }
+
+  function connectParticles() {
+    for (let a = 0; a < particles.length; a++) {
+      for (let b = a; b < particles.length; b++) {
+        const dx = particles[a].x - particles[b].x;
+        const dy = particles[a].y - particles[b].y;
+        const distance = dx * dx + dy * dy;
+
+        if (distance < 16000) {
+          const opacity = 1 - distance / 16000;
+          ctx.strokeStyle = `rgba(200,150,255,${opacity})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(particles[a].x, particles[a].y);
+          ctx.lineTo(particles[b].x, particles[b].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animateAether() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => p.update());
+    connectParticles();
+
+    requestAnimationFrame(animateAether);
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+
+  window.addEventListener("mouseout", () => {
+    mouse.x = null;
+    mouse.y = null;
+  });
+
+  resizeCanvas();
+  animateAether();
+</script>
 {% endblock %}
